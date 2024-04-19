@@ -1,0 +1,48 @@
+---
+title: "Simulations"
+output: html_document
+date: "2024-04-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Case 1: 2 nodes, 1 edge
+
+Detect direction.
+```{r}
+library('fBasics')
+library('Matrix')
+
+# Initialization
+n <- 2
+Lambda_1 <- rbind(c(0.6,0.5),c(0,0.4))  # Changable coefficients
+Lambda_2 <- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
+omega <- 1
+
+# Calculate Sigma
+vec_Sigma_1 <- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
+vec_Sigma_2 <- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
+
+# Calculate J
+Sig_Lam_1 <- Sigma_1 %*% Lambda_1
+B_1 <- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2]))
+J_n2_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 <- J_n2_1[-3,]
+
+Sig_Lam_2 <- Sigma_2 %*% Lambda_2
+B_2 <- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2]))
+J_n2_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 <- J_n2_2[-2,]
+
+# Compare matroids of J_G_1 & J_G_2
+print("Rank of J_G_1[,-3] is:")
+rankMatrix(J_G_1[,-3])
+print("Rank of J_G_2[,-3] is:")
+rankMatrix(J_G_2[,-3])
+print("The ranks are different, so the metroids are different.")
+```
+Conclusion: If there is only one edge in the graph, we can detect its direction.
