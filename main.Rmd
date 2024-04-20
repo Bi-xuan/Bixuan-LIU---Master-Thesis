@@ -30,22 +30,32 @@ Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
 Sig_Lam_1 <- Sigma_1 %*% Lambda_1
-B_1 <- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2]))
-J_n2_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 <- rbind(J_n2_1[-3,],c(1,0,0,1))
+B_1 <- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2])) + Sig_Lam_1 %x% diag(n)
+B_1 <- rbind(B_1, c(1,0,0,1))
+J_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 <- J_1[-3,]
 
 Sig_Lam_2 <- Sigma_2 %*% Lambda_2
-B_2 <- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2]))
-J_n2_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 <- rbind(J_n2_2[-2,],c(1,0,0,1))
+B_2 <- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2])) + Sig_Lam_2 %x% diag(n)
+B_2 <- rbind(B_2, c(1,0,0,1))
+J_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 <- rbind(J_2[-2,],c(1,0,0,1))
 
 # Compare matroids of J_G_1 & J_G_2
 print("Rank of J_G_1 is:")
 rankMatrix(J_G_1)
 print("Rank of J_G_2 is:")
 rankMatrix(J_G_2)
-print("The ranks are the same, so the matroids are the same.")
+print("Both Jacobian Matrices reach full rank, so the matroids are the same.")
 ```
-Note: I also tried to change the coefficients in Lambda, and it did not change the result.
-
 Conclusion: If there is only one edge in the graph, we can not detect its direction.
+
+# Case 2: 3 nodes, 1 edge
+
+```{r}
+
+```
+
+
+
+

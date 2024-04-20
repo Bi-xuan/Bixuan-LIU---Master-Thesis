@@ -376,20 +376,22 @@ Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
 Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
-B_1 &lt;- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2]))
-J_n2_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 &lt;- rbind(J_n2_1[-3,],c(1,0,0,1))
+B_1 &lt;- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2])) + Sig_Lam_1 %x% diag(n)
+B_1 &lt;- rbind(B_1, c(1,0,0,1))
+J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 &lt;- J_1[-3,]
 
 Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
-B_2 &lt;- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2]))
-J_n2_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 &lt;- rbind(J_n2_2[-2,],c(1,0,0,1))
+B_2 &lt;- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2])) + Sig_Lam_2 %x% diag(n)
+B_2 &lt;- rbind(B_2, c(1,0,0,1))
+J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 &lt;- rbind(J_2[-2,],c(1,0,0,1))
 
 # Compare matroids of J_G_1 &amp; J_G_2
 print(&quot;Rank of J_G_1 is:&quot;)</code></pre>
 <pre><code>## [1] &quot;Rank of J_G_1 is:&quot;</code></pre>
 <pre class="r"><code>rankMatrix(J_G_1)</code></pre>
-<pre><code>## [1] 4
+<pre><code>## [1] 3
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
@@ -399,19 +401,20 @@ print(&quot;Rank of J_G_1 is:&quot;)</code></pre>
 <pre class="r"><code>print(&quot;Rank of J_G_2 is:&quot;)</code></pre>
 <pre><code>## [1] &quot;Rank of J_G_2 is:&quot;</code></pre>
 <pre class="r"><code>rankMatrix(J_G_2)</code></pre>
-<pre><code>## [1] 4
+<pre><code>## [1] 3
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
-## [1] 8.881784e-16</code></pre>
-<pre class="r"><code>print(&quot;The ranks are the same, so the matroids are the same.&quot;)</code></pre>
-<pre><code>## [1] &quot;The ranks are the same, so the matroids are the same.&quot;</code></pre>
-<p>Note: I also tried to change the coefficients in Lambda, and it did
-not change the result.</p>
+## [1] 1.110223e-15</code></pre>
+<pre class="r"><code>print(&quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;)</code></pre>
+<pre><code>## [1] &quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;</code></pre>
 <p>Conclusion: If there is only one edge in the graph, we can not detect
 its direction.</p>
+</div>
+<div id="case-2-3-nodes-1-edge" class="section level1">
+<h1>Case 2: 3 nodes, 1 edge</h1>
 </div>
 
 
