@@ -8,7 +8,9 @@ date: "2024-04-19"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Case 1: 2 nodes, 1 edge
+# Case 1: 1 edge
+
+## 2 nodes
 
 Detect direction.
 ```{r}
@@ -50,12 +52,39 @@ print("Both Jacobian Matrices reach full rank, so the matroids are the same.")
 ```
 Conclusion: If there is only one edge in the graph, we can not detect its direction.
 
-# Case 2: 3 nodes, 1 edge
+## 3 nodes
 
 ```{r}
+# Initialization
+n <- 3
+Lambda_1 <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda_2 <- rbind(c(0.5,0,0.7),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
 
+omega <- 1
+
+# Calculate Sigma
+vec_Sigma_1 <- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
+vec_Sigma_2 <- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
+
+# Calculate J
+Sig_Lam_1 <- Sigma_1 %*% Lambda_1
+B_1 <- rbind(c(Sig_Lam_1[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[1,]),c(Sig_Lam_1[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[2,]),c(Sig_Lam_1[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[3,])) + Sig_Lam_1 %x% diag(n)
+B_1 <- rbind(B_1, c(1,0,0,0,1,0,0,0,1))
+J_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 <- J_1[-c(3,4,6,7,8),]
+
+Sig_Lam_2 <- Sigma_2 %*% Lambda_2
+B_2 <- rbind(c(Sig_Lam_2[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[1,]),c(Sig_Lam_2[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[2,]),c(Sig_Lam_2[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[3,])) + Sig_Lam_2 %x% diag(n)
+B_2 <- rbind(B_2, c(1,0,0,0,1,0,0,0,1))
+J_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 <- J_2[-c(2,4,6,7,8),]
+
+J_G_1
+J_G_2
 ```
-
+The structures of J_G_1 and J_G_2 are clearly different, so the matroids are different. These models are identifiable.
 
 
 
