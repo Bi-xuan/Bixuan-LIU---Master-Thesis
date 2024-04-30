@@ -1,5 +1,7 @@
 # Bixuan LIU---Master Thesis
-## 1. Instructions to run the codes
+## 1. To see the output
+Download only main.html file to glance at the codes and outputs.
+## 2. Instructions to run the codes
 1. Open a terminal and type this:
 ```
 git clone git@github.com:Bi-xuan/Bixuan-LIU---Master-Thesis.git
