@@ -359,11 +359,10 @@ display: none;
 <h1>Case 1: 1 edge</h1>
 <div id="nodes" class="section level2">
 <h2>2 nodes</h2>
-<p>Detect direction.</p>
 <pre class="r"><code>library(&#39;fBasics&#39;)
-library(&#39;Matrix&#39;)
-
-# Initialization
+library(&#39;Matrix&#39;)</code></pre>
+<p>Detect direction.</p>
+<pre class="r"><code># Initialization
 n &lt;- 2
 Lambda_1 &lt;- rbind(c(0.6,0.5),c(0,0.4))  # Changable coefficients
 Lambda_2 &lt;- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
@@ -460,6 +459,163 @@ J_G_1</code></pre>
 <p>The structures of J_G_1 and J_G_2 are clearly different, so the
 matroids are different. These models are identifiable.</p>
 </div>
+</div>
+<div id="case-2-2-edges" class="section level1">
+<h1>Case 2: 2 edges</h1>
+<pre class="r"><code># Initialization
+n &lt;- 3
+Lambda_1 &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0.4,0,0.4))  # Changable coefficients
+Lambda_2 &lt;- rbind(c(0.5,0.7,0),c(0.4,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+# Calculate Sigma
+vec_Sigma_1 &lt;- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
+vec_Sigma_2 &lt;- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
+
+# Calculate J
+Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
+B_1 &lt;- rbind(c(Sig_Lam_1[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[1,]),c(Sig_Lam_1[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[2,]),c(Sig_Lam_1[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[3,])) + Sig_Lam_1 %x% diag(n)
+B_1 &lt;- rbind(B_1, c(1,0,0,0,1,0,0,0,1))
+J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 &lt;- J_1[-which(t(Lambda_1) == 0),]
+
+Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
+B_2 &lt;- rbind(c(Sig_Lam_2[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[1,]),c(Sig_Lam_2[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[2,]),c(Sig_Lam_2[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[3,])) + Sig_Lam_2 %x% diag(n)
+B_2 &lt;- rbind(B_2, c(1,0,0,0,1,0,0,0,1))
+J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 &lt;- J_2[-which(t(Lambda_2) == 0),]
+
+J_G_1</code></pre>
+<pre><code>##          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+## [1,] 5.957602 7.3376011 0.6195175 7.3376011 14.191891 0.2282433 0.6195175
+## [2,] 0.000000 3.2381529 0.0000000 3.2381529 13.071690 0.6521237 0.0000000
+## [3,] 0.000000 0.8922388 0.0000000 0.8922388  6.151532 0.1558172 0.0000000
+## [4,] 4.688805 4.4365574 1.1387845 4.4365574  9.412848 0.4195522 1.1387845
+## [5,] 1.714480 2.5639139 2.3470040 2.5639139  4.677785 2.2396280 2.3470040
+## [6,] 1.714286 0.9824561 0.2380952 0.9824561  4.164474 0.0877193 0.2380952
+##           [,8]     [,9]
+## [1,] 0.2282433 0.000000
+## [2,] 0.6521237 0.000000
+## [3,] 0.1558172 0.000000
+## [4,] 0.4195522 0.000000
+## [5,] 2.2396280 2.169113
+## [6,] 0.0877193 1.190476</code></pre>
+<pre class="r"><code>J_G_2</code></pre>
+<pre><code>##           [,1]      [,2] [,3]      [,4]      [,5] [,6] [,7] [,8]     [,9]
+## [1,] 13.328957 24.102828    0 24.102828 41.839944    0    0    0 0.000000
+## [2,] 16.445659 20.674456    0 20.674456 25.402887    0    0    0 0.000000
+## [3,] 11.021916 20.005513    0 20.005513 34.695890    0    0    0 0.000000
+## [4,] 13.637185 17.128718    0 17.128718 21.102508    0    0    0 0.000000
+## [5,]  0.000000  0.000000    0  0.000000  0.000000    0    0    0 1.133787
+## [6,] -1.386215 -3.475164    0 -3.475164 -4.059973    0    0    0 1.190476</code></pre>
+<pre class="r"><code>rankMatrix(J_G_1)</code></pre>
+<pre><code>## [1] 6
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 1.998401e-15</code></pre>
+<pre class="r"><code>rankMatrix(J_G_2)</code></pre>
+<pre><code>## [1] 4
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 1.998401e-15</code></pre>
+<pre class="r"><code># Initialization
+n &lt;- 4
+Lambda_1 &lt;- rbind(c(0.5,0.7,0,0),c(0,0.6,0,0.3),c(0.4,0,0.4,0),c(0,0,0,0.3))  # Changable coefficients
+Lambda_2 &lt;- rbind(c(0.5,0,0,0),c(0.3,0.6,0,0),c(0,0,0.4,0.7),c(0,0,0.5,0.3))  # Changable coefficients
+
+omega &lt;- 1
+
+# Calculate Sigma
+vec_Sigma_1 &lt;- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
+vec_Sigma_2 &lt;- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
+
+# Calculate J
+Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
+B_1 &lt;- rbind(c(Sig_Lam_1[1,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[1,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[1,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[1,]),c(Sig_Lam_1[2,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[2,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[2,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[2,]),c(Sig_Lam_1[3,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[3,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[3,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[3,]),c(Sig_Lam_1[4,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[4,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[4,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[4,])) + Sig_Lam_1 %x% diag(n)
+B_1 &lt;- rbind(B_1, c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1))
+J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+J_G_1 &lt;- J_1[-which(t(Lambda_1) == 0),]
+
+Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
+B_2 &lt;- rbind(c(Sig_Lam_2[1,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_2[1,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_2[1,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_2[1,]),c(Sig_Lam_2[2,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_2[2,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_2[2,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_2[2,]),c(Sig_Lam_2[3,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_2[3,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_2[3,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_2[3,]),c(Sig_Lam_2[4,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_2[4,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_2[4,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_2[4,])) + Sig_Lam_2 %x% diag(n)
+B_2 &lt;- rbind(B_2, c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1))
+J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
+J_G_2 &lt;- J_2[-which(t(Lambda_2) == 0),]
+
+J_G_1</code></pre>
+<pre><code>##          [,1]      [,2]      [,3]       [,4]      [,5]      [,6]      [,7]
+## [1,] 6.584077 8.1534254 0.6996717 1.88370892 8.1534254 15.742305 0.2577738
+## [2,] 0.000000 3.5797911 0.0000000 0.74988238 3.5797911 14.527216 0.7364966
+## [3,] 0.000000 1.0637566 0.0000000 0.21786331 1.0637566  7.178594 0.1878823
+## [4,] 0.000000 0.0000000 0.0000000 0.84589334 0.0000000  0.000000 0.0000000
+## [5,] 5.062592 4.8675666 1.1988001 1.05726320 4.8675666 10.264728 0.4416632
+## [6,] 1.836505 2.7883944 2.5300756 0.91096868 2.7883944  5.065842 2.5028256
+## [7,] 0.000000 0.0000000 0.0000000 0.01970118 0.0000000  0.000000 0.0000000
+## [8,] 1.714286 0.9824561 0.2380952 0.18744723 0.9824561  4.164474 0.0877193
+##           [,8]      [,9]     [,10]    [,11]       [,12]      [,13]     [,14]
+## [1,] 6.0261135 0.6996717 0.2577738 0.000000 0.035150973 1.88370892 6.0261135
+## [2,] 4.7159978 0.0000000 0.7364966 0.000000 0.100431351 0.74988238 4.7159978
+## [3,] 2.6011384 0.0000000 0.1878823 0.000000 0.025620318 0.21786331 2.6011384
+## [4,] 2.4731828 0.0000000 0.0000000 0.000000 0.162262012 0.84589334 2.4731828
+## [5,] 3.7705674 1.1988001 0.4416632 0.000000 0.060226801 1.05726320 3.7705674
+## [6,] 2.0594120 2.5300756 2.5028256 2.283429 0.464376149 0.91096868 2.0594120
+## [7,] 0.1187348 0.0000000 0.0000000 0.000000 0.001846986 0.01970118 0.1187348
+## [8,] 1.2137622 0.2380952 0.0877193 1.190476 0.011961722 0.18744723 1.2137622
+##            [,15]     [,16]
+## [1,] 0.035150973 2.7489098
+## [2,] 0.100431351 2.3695924
+## [3,] 0.025620318 1.2244817
+## [4,] 0.162262012 1.7455666
+## [5,] 0.060226801 1.7610194
+## [6,] 0.464376149 0.9083735
+## [7,] 0.001846986 0.8275600
+## [8,] 0.011961722 1.7508569</code></pre>
+<pre class="r"><code>J_G_2</code></pre>
+<pre><code>##          [,1]      [,2] [,3] [,4]      [,5]     [,6] [,7] [,8] [,9] [,10]
+## [1,] 2.104308 0.2448980    0    0 0.2448980 0.000000    0    0    0     0
+## [2,] 2.564626 1.6377551    0    0 1.6377551 0.000000    0    0    0     0
+## [3,] 1.207589 1.9441964    0    0 1.9441964 3.582589    0    0    0     0
+## [4,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
+## [5,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
+## [6,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
+## [7,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
+## [8,] 1.681548 0.4017857    0    0 0.4017857 1.562500    0    0    0     0
+##          [,11]    [,12] [,13] [,14]    [,15]     [,16]
+## [1,]  0.000000  0.00000     0     0  0.00000  0.000000
+## [2,]  0.000000  0.00000     0     0  0.00000  0.000000
+## [3,]  0.000000  0.00000     0     0  0.00000  0.000000
+## [4,] 50.796482 51.95177     0     0 51.95177 51.329691
+## [5,] 33.849423 40.34533     0     0 40.34533 49.181531
+## [6,] 39.463211 39.71126     0     0 39.71126 39.577697
+## [7,] 26.007107 31.26579     0     0 31.26579 37.358621
+## [8,]  4.833803  4.14247     0     0  4.14247  5.613628</code></pre>
+<pre class="r"><code>rankMatrix(J_G_1)</code></pre>
+<pre><code>## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.552714e-15</code></pre>
+<pre class="r"><code>rankMatrix(J_G_2)</code></pre>
+<pre><code>## [1] 6
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.552714e-15</code></pre>
 </div>
 
 
