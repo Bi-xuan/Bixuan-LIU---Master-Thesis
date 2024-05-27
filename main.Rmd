@@ -23,14 +23,14 @@ Detect direction.
 # Initialization
 n <- 2
 Lambda_1 <- rbind(c(0.6,0.5),c(0,0.4))  # Changable coefficients
-Lambda_2 <- rbind(c(0.6,0),c(0,0.4))  # Changable coefficients
+Lambda_2 <- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
 
 omega <- 1
 
 # Calculate Sigma
-vec_Sigma_1 <- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+vec_Sigma_1 <- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
 Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 <- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+vec_Sigma_2 <- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
 Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
@@ -68,9 +68,9 @@ Lambda_2 <- rbind(c(0.5,0,0.7),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
 omega <- 1
 
 # Calculate Sigma
-vec_Sigma_1 <- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+vec_Sigma_1 <- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
 Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 <- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+vec_Sigma_2 <- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
 Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
@@ -90,6 +90,88 @@ J_G_1
 J_G_2
 ```
 The structures of J_G_1 and J_G_2 are clearly different, so the matroids are different. These models are identifiable.
+
+## Simulation: Recover parameters in \Lambda
+
+1. Diagonal values unknown
+```{r}
+n <- 3
+Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega) {
+  n <- 3
+  Lambda <- rbind(c(par[1],par[2],par[3]),c(0,par[4],par[5]),c(0,0,par[6]))
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  return (obj)
+}
+
+optim(par=rep(0L,6),obj_fn,Sigma = Sigma,omega = omega)
+```
+
+2. Diagonal values known
+```{r}
+n <- 3
+Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega) {
+  n <- 3
+  Lambda <- rbind(c(0.5,par[1],par[2]),c(0,0.6,par[3]),c(0,0,0.4))
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  return (obj)
+}
+
+optim(par=rep(0L,3),obj_fn,Sigma = Sigma,omega = omega)
+```
+
+3. Recover parameters with support known
+```{r}
+n <- 3
+Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega) {
+  n <- 3
+  Lambda <- rbind(c(par[1],par[2],0),c(0,par[3],0),c(0,0,par[4]))
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  return (obj)
+}
+
+optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Case 2: 2 edges
 

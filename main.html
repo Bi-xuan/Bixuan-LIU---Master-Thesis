@@ -370,9 +370,9 @@ Lambda_2 &lt;- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
 omega &lt;- 1
 
 # Calculate Sigma
-vec_Sigma_1 &lt;- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+vec_Sigma_1 &lt;- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
 Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 &lt;- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+vec_Sigma_2 &lt;- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
 Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
@@ -380,17 +380,27 @@ Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
 B_1 &lt;- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2])) + Sig_Lam_1 %x% diag(n)
 B_1 &lt;- rbind(B_1, c(1,0,0,1))
 J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 &lt;- J_1[-3,]
+J_G_1 &lt;- J_1[-which(t(Lambda_1) == 0),]
 
 Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
 B_2 &lt;- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2])) + Sig_Lam_2 %x% diag(n)
 B_2 &lt;- rbind(B_2, c(1,0,0,1))
 J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 &lt;- rbind(J_2[-2,],c(1,0,0,1))
+J_G_2 &lt;- J_2[-which(t(Lambda_2) == 0),]
 
-# Compare matroids of J_G_1 &amp; J_G_2
-print(&quot;Rank of J_G_1 is:&quot;)</code></pre>
-<pre><code>## [1] &quot;Rank of J_G_1 is:&quot;</code></pre>
+
+J_G_1</code></pre>
+<pre><code>##          [,1]      [,2]      [,3]     [,4]
+## [1,] 2.929688 2.5090352 2.5090352 2.066709
+## [2,] 0.000000 1.2335526 1.2335526 3.034931
+## [3,] 0.000000 0.4869287 0.4869287 2.822518
+## [4,] 1.562500 0.6167763 0.6167763 1.949209</code></pre>
+<pre class="r"><code>J_G_2</code></pre>
+<pre><code>##          [,1]      [,2]      [,3]     [,4]
+## [1,] 4.996397 0.1648859 0.1648859 0.000000
+## [2,] 3.034931 0.6265664 0.6265664 0.000000
+## [3,] 1.688731 1.3289018 1.3289018 1.133787
+## [4,] 2.321233 0.3132832 0.3132832 1.190476</code></pre>
 <pre class="r"><code>rankMatrix(J_G_1)</code></pre>
 <pre><code>## [1] 3
 ## attr(,&quot;method&quot;)
@@ -399,8 +409,6 @@ print(&quot;Rank of J_G_1 is:&quot;)</code></pre>
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
 ## [1] 8.881784e-16</code></pre>
-<pre class="r"><code>print(&quot;Rank of J_G_2 is:&quot;)</code></pre>
-<pre><code>## [1] &quot;Rank of J_G_2 is:&quot;</code></pre>
 <pre class="r"><code>rankMatrix(J_G_2)</code></pre>
 <pre><code>## [1] 3
 ## attr(,&quot;method&quot;)
@@ -408,7 +416,7 @@ print(&quot;Rank of J_G_1 is:&quot;)</code></pre>
 ## attr(,&quot;useGrad&quot;)
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
-## [1] 1.110223e-15</code></pre>
+## [1] 8.881784e-16</code></pre>
 <pre class="r"><code>print(&quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;)</code></pre>
 <pre><code>## [1] &quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;</code></pre>
 <p>Conclusion: If there is only one edge in the graph, we can not detect
@@ -424,9 +432,9 @@ Lambda_2 &lt;- rbind(c(0.5,0,0.7),c(0,0.6,0),c(0,0,0.4))  # Changable coefficien
 omega &lt;- 1
 
 # Calculate Sigma
-vec_Sigma_1 &lt;- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
+vec_Sigma_1 &lt;- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
 Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 &lt;- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
+vec_Sigma_2 &lt;- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
 Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
 
 # Calculate J
@@ -443,21 +451,129 @@ J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
 J_G_2 &lt;- J_2[-c(2,4,6,7,8),]
 
 J_G_1</code></pre>
-<pre><code>##          [,1]      [,2] [,3]      [,4]      [,5] [,6] [,7] [,8]     [,9]
-## [1,] 4.305556 6.1855159    0 6.1855159 11.414931    0    0    0 0.000000
-## [2,] 0.000000 2.3065476    0 2.3065476 11.848958    0    0    0 0.000000
-## [3,] 0.000000 0.6696429    0 0.6696429  5.859375    0    0    0 0.000000
-## [4,] 0.000000 0.0000000    0 0.0000000  0.000000    0    0    0 1.133787
-## [5,] 1.333333 0.6666667    0 0.6666667  3.458333    0    0    0 1.190476</code></pre>
+<pre><code>##          [,1]      [,2] [,3]      [,4]     [,5] [,6] [,7] [,8]     [,9]
+## [1,] 1.777778 2.7936508    0 2.7936508 5.027778    0    0    0 0.000000
+## [2,] 0.000000 0.9523810    0 0.9523810 5.416667    0    0    0 0.000000
+## [3,] 0.000000 0.4761905    0 0.4761905 8.567708    0    0    0 0.000000
+## [4,] 0.000000 0.0000000    0 0.0000000 0.000000    0    0    0 1.133787
+## [5,] 1.333333 0.6666667    0 0.6666667 3.458333    0    0    0 1.190476</code></pre>
 <pre class="r"><code>J_G_2</code></pre>
 <pre><code>##          [,1] [,2]      [,3] [,4]     [,5] [,6]      [,7] [,8]     [,9]
-## [1,] 3.333333    0 3.8541667    0 0.000000    0 3.8541667    0 4.513889
-## [2,] 0.000000    0 1.5625000    0 0.000000    0 1.5625000    0 5.605159
+## [1,] 1.777778    0 2.2361111    0 0.000000    0 2.2361111    0 2.527778
+## [2,] 0.000000    0 0.8333333    0 0.000000    0 0.8333333    0 3.333333
 ## [3,] 0.000000    0 0.0000000    0 2.929688    0 0.0000000    0 0.000000
-## [4,] 0.000000    0 0.2604167    0 0.000000    0 0.2604167    0 2.001842
+## [4,] 0.000000    0 0.3645833    0 0.000000    0 0.3645833    0 3.460176
 ## [5,] 1.333333    0 0.5833333    0 1.562500    0 0.5833333    0 2.357143</code></pre>
 <p>The structures of J_G_1 and J_G_2 are clearly different, so the
 matroids are different. These models are identifiable.</p>
+</div>
+<div id="simulation-recover-parameters-in" class="section level2">
+<h2>Simulation: Recover parameters in </h2>
+<ol style="list-style-type: decimal">
+<li>Diagonal values unknown</li>
+</ol>
+<pre class="r"><code>n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn &lt;- function(par,Sigma,omega) {
+  n &lt;- 3
+  Lambda &lt;- rbind(c(par[1],par[2],par[3]),c(0,par[4],par[5]),c(0,0,par[6]))
+  obj &lt;- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type=&quot;2&quot;)
+  return (obj)
+}
+
+optim(par=rep(0L,6),obj_fn,Sigma = Sigma,omega = omega)</code></pre>
+<pre><code>## $par
+## [1]  0.54583495  0.24395615  0.02492783  0.77221797 -0.00257383 -0.57671083
+## 
+## $value
+## [1] 0.2198066
+## 
+## $counts
+## function gradient 
+##      501       NA 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Diagonal values known</li>
+</ol>
+<pre class="r"><code>n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn &lt;- function(par,Sigma,omega) {
+  n &lt;- 3
+  Lambda &lt;- rbind(c(0.5,par[1],par[2]),c(0,0.6,par[3]),c(0,0,0.4))
+  obj &lt;- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type=&quot;2&quot;)
+  return (obj)
+}
+
+optim(par=rep(0L,3),obj_fn,Sigma = Sigma,omega = omega)</code></pre>
+<pre><code>## $par
+## [1]  7.000000e-01  3.377924e-08 -2.908117e-08
+## 
+## $value
+## [1] 3.382015e-08
+## 
+## $counts
+## function gradient 
+##      198       NA 
+## 
+## $convergence
+## [1] 0
+## 
+## $message
+## NULL</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Recover parameters with support known</li>
+</ol>
+<pre class="r"><code>n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn &lt;- function(par,Sigma,omega) {
+  n &lt;- 3
+  Lambda &lt;- rbind(c(par[1],par[2],0),c(0,par[3],0),c(0,0,par[4]))
+  obj &lt;- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type=&quot;2&quot;)
+  return (obj)
+}
+
+optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)</code></pre>
+<pre><code>## $par
+## [1]  0.5489434  0.5685990  0.6757893 -0.3251876
+## 
+## $value
+## [1] 0.07021361
+## 
+## $counts
+## function gradient 
+##      501       NA 
+## 
+## $convergence
+## [1] 1
+## 
+## $message
+## NULL</code></pre>
 </div>
 </div>
 <div id="case-2-2-edges" class="section level1">
@@ -529,8 +645,8 @@ J_G_1</code></pre>
 ## [1] 1.998401e-15</code></pre>
 <pre class="r"><code># Initialization
 n &lt;- 4
-Lambda_1 &lt;- rbind(c(0.5,0.7,0,0),c(0,0.6,0,0.3),c(0.4,0,0.4,0),c(0,0,0,0.3))  # Changable coefficients
-Lambda_2 &lt;- rbind(c(0.5,0,0,0),c(0.3,0.6,0,0),c(0,0,0.4,0.7),c(0,0,0.5,0.3))  # Changable coefficients
+Lambda_1 &lt;- rbind(c(0.5,0.7,0,0),c(0,0.6,0,0),c(0,0,0.4,0.9),c(0,0,0,0.3))  # Changable coefficients
+Lambda_2 &lt;- rbind(c(0.5,0.7,0,0.9),c(0,0.6,0.4,0),c(0,0,0.4,0),c(0,0,0,0.3))  # Changable coefficients
 
 omega &lt;- 1
 
@@ -545,6 +661,7 @@ Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
 B_1 &lt;- rbind(c(Sig_Lam_1[1,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[1,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[1,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[1,]),c(Sig_Lam_1[2,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[2,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[2,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[2,]),c(Sig_Lam_1[3,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[3,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[3,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[3,]),c(Sig_Lam_1[4,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam_1[4,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam_1[4,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam_1[4,])) + Sig_Lam_1 %x% diag(n)
 B_1 &lt;- rbind(B_1, c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1))
 J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
+B_1_prime &lt;- B_1[-which(t(Lambda_1) == 0),]
 J_G_1 &lt;- J_1[-which(t(Lambda_1) == 0),]
 
 Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
@@ -554,54 +671,52 @@ J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
 J_G_2 &lt;- J_2[-which(t(Lambda_2) == 0),]
 
 J_G_1</code></pre>
-<pre><code>##          [,1]      [,2]      [,3]       [,4]      [,5]      [,6]      [,7]
-## [1,] 6.584077 8.1534254 0.6996717 1.88370892 8.1534254 15.742305 0.2577738
-## [2,] 0.000000 3.5797911 0.0000000 0.74988238 3.5797911 14.527216 0.7364966
-## [3,] 0.000000 1.0637566 0.0000000 0.21786331 1.0637566  7.178594 0.1878823
-## [4,] 0.000000 0.0000000 0.0000000 0.84589334 0.0000000  0.000000 0.0000000
-## [5,] 5.062592 4.8675666 1.1988001 1.05726320 4.8675666 10.264728 0.4416632
-## [6,] 1.836505 2.7883944 2.5300756 0.91096868 2.7883944  5.065842 2.5028256
-## [7,] 0.000000 0.0000000 0.0000000 0.01970118 0.0000000  0.000000 0.0000000
-## [8,] 1.714286 0.9824561 0.2380952 0.18744723 0.9824561  4.164474 0.0877193
-##           [,8]      [,9]     [,10]    [,11]       [,12]      [,13]     [,14]
-## [1,] 6.0261135 0.6996717 0.2577738 0.000000 0.035150973 1.88370892 6.0261135
-## [2,] 4.7159978 0.0000000 0.7364966 0.000000 0.100431351 0.74988238 4.7159978
-## [3,] 2.6011384 0.0000000 0.1878823 0.000000 0.025620318 0.21786331 2.6011384
-## [4,] 2.4731828 0.0000000 0.0000000 0.000000 0.162262012 0.84589334 2.4731828
-## [5,] 3.7705674 1.1988001 0.4416632 0.000000 0.060226801 1.05726320 3.7705674
-## [6,] 2.0594120 2.5300756 2.5028256 2.283429 0.464376149 0.91096868 2.0594120
-## [7,] 0.1187348 0.0000000 0.0000000 0.000000 0.001846986 0.01970118 0.1187348
-## [8,] 1.2137622 0.2380952 0.0877193 1.190476 0.011961722 0.18744723 1.2137622
-##            [,15]     [,16]
-## [1,] 0.035150973 2.7489098
-## [2,] 0.100431351 2.3695924
-## [3,] 0.025620318 1.2244817
-## [4,] 0.162262012 1.7455666
-## [5,] 0.060226801 1.7610194
-## [6,] 0.464376149 0.9083735
-## [7,] 0.001846986 0.8275600
-## [8,] 0.011961722 1.7508569</code></pre>
+<pre><code>##          [,1]      [,2] [,3] [,4]      [,5]      [,6] [,7] [,8] [,9] [,10]
+## [1,] 4.305556 6.1855159    0    0 6.1855159 11.414931    0    0    0     0
+## [2,] 0.000000 2.3065476    0    0 2.3065476 11.848958    0    0    0     0
+## [3,] 0.000000 0.6696429    0    0 0.6696429  5.859375    0    0    0     0
+## [4,] 0.000000 0.0000000    0    0 0.0000000  0.000000    0    0    0     0
+## [5,] 0.000000 0.0000000    0    0 0.0000000  0.000000    0    0    0     0
+## [6,] 0.000000 0.0000000    0    0 0.0000000  0.000000    0    0    0     0
+## [7,] 1.333333 0.6666667    0    0 0.6666667  3.458333    0    0    0     0
+##         [,11]     [,12] [,13] [,14]     [,15]    [,16]
+## [1,] 0.000000 0.0000000     0     0 0.0000000 0.000000
+## [2,] 0.000000 0.0000000     0     0 0.0000000 0.000000
+## [3,] 0.000000 0.0000000     0     0 0.0000000 0.000000
+## [4,] 2.418217 3.7010473     0     0 3.7010473 4.348704
+## [5,] 0.000000 1.1541489     0     0 1.1541489 5.929635
+## [6,] 0.000000 0.1532558     0     0 0.1532558 1.482409
+## [7,] 1.190476 0.4870130     0     0 0.4870130 2.447552</code></pre>
 <pre class="r"><code>J_G_2</code></pre>
-<pre><code>##          [,1]      [,2] [,3] [,4]      [,5]     [,6] [,7] [,8] [,9] [,10]
-## [1,] 2.104308 0.2448980    0    0 0.2448980 0.000000    0    0    0     0
-## [2,] 2.564626 1.6377551    0    0 1.6377551 0.000000    0    0    0     0
-## [3,] 1.207589 1.9441964    0    0 1.9441964 3.582589    0    0    0     0
-## [4,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
-## [5,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
-## [6,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
-## [7,] 0.000000 0.0000000    0    0 0.0000000 0.000000    0    0    0     0
-## [8,] 1.681548 0.4017857    0    0 0.4017857 1.562500    0    0    0     0
-##          [,11]    [,12] [,13] [,14]    [,15]     [,16]
-## [1,]  0.000000  0.00000     0     0  0.00000  0.000000
-## [2,]  0.000000  0.00000     0     0  0.00000  0.000000
-## [3,]  0.000000  0.00000     0     0  0.00000  0.000000
-## [4,] 50.796482 51.95177     0     0 51.95177 51.329691
-## [5,] 33.849423 40.34533     0     0 40.34533 49.181531
-## [6,] 39.463211 39.71126     0     0 39.71126 39.577697
-## [7,] 26.007107 31.26579     0     0 31.26579 37.358621
-## [8,]  4.833803  4.14247     0     0  4.14247  5.613628</code></pre>
+<pre><code>##          [,1]       [,2]       [,3]      [,4]       [,5]      [,6]       [,7]
+## [1,] 7.387994 10.3957067 3.31986966 9.9014259 10.3957067 19.300798 11.1480959
+## [2,] 0.000000  3.9578539 0.98946347 0.0000000  3.9578539 19.854673  8.8514800
+## [3,] 0.000000  0.0000000 0.00000000 3.2594091  0.0000000  0.000000  0.0000000
+## [4,] 0.000000  0.9672619 0.24181548 0.0000000  0.9672619  8.071938  4.2043328
+## [5,] 0.000000  0.0000000 0.84635417 0.0000000  0.0000000  0.000000  3.1759858
+## [6,] 0.000000  0.0000000 0.05482456 0.0000000  0.0000000  0.000000  0.2988557
+## [7,] 0.000000  0.0000000 0.00000000 0.2053310  0.0000000  0.000000  0.0000000
+## [8,] 1.333333  0.6666667 0.16666667 0.7058824  0.6666667  3.458333  1.3991228
+##            [,8]       [,9]      [,10]    [,11]      [,12]     [,13]      [,14]
+## [1,] 15.0578259 3.31986966 11.1480959 7.923236 7.66425749 9.9014259 15.0578259
+## [2,]  8.8156778 0.98946347  8.8514800 7.153835 3.22604044 0.0000000  8.8156778
+## [3,]  6.5556984 0.00000000  0.0000000 0.000000 1.54936159 3.2594091  6.5556984
+## [4,]  2.1232578 0.24181548  4.2043328 3.139163 0.78415772 0.0000000  2.1232578
+## [5,]  0.0000000 0.84635417  3.1759858 3.399152 1.73117898 0.0000000  0.0000000
+## [6,]  0.0000000 0.05482456  0.2988557 1.486329 0.11214115 0.0000000  0.0000000
+## [7,]  0.3505651 0.00000000  0.0000000 0.000000 0.04780434 0.2053310  0.3505651
+## [8,]  1.6441894 0.16666667  1.3991228 2.382206 0.56511673 0.7058824  1.6441894
+##           [,15]     [,16]
+## [1,] 7.66425749 12.451698
+## [2,] 3.22604044  0.000000
+## [3,] 1.54936159 13.124517
+## [4,] 0.78415772  0.000000
+## [5,] 1.73117898  0.000000
+## [6,] 0.11214115  0.000000
+## [7,] 0.04780434  1.536849
+## [8,] 0.56511673  2.704590</code></pre>
 <pre class="r"><code>rankMatrix(J_G_1)</code></pre>
-<pre><code>## [1] 8
+<pre><code>## [1] 6
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
@@ -609,7 +724,7 @@ J_G_1</code></pre>
 ## attr(,&quot;tol&quot;)
 ## [1] 3.552714e-15</code></pre>
 <pre class="r"><code>rankMatrix(J_G_2)</code></pre>
-<pre><code>## [1] 6
+<pre><code>## [1] 8
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
