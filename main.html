@@ -360,7 +360,13 @@ display: none;
 <div id="nodes" class="section level2">
 <h2>2 nodes</h2>
 <pre class="r"><code>library(&#39;fBasics&#39;)
-library(&#39;Matrix&#39;)</code></pre>
+library(&#39;Matrix&#39;)
+library(&quot;matrixcalc&quot;)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;matrixcalc&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:fBasics&#39;:
+## 
+##     vec, vech</code></pre>
 <p>Detect direction.</p>
 <pre class="r"><code># Initialization
 n &lt;- 2
@@ -580,6 +586,57 @@ optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)</code></pre>
 <h1>Case 2: 2 edges</h1>
 <pre class="r"><code># Initialization
 n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0,0.7),c(0.2,0.6,0),c(0,0,0.7))  # Changable coefficients
+
+omega &lt;- 1
+
+# Calculate Sigma
+vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+inv_Sigma &lt;- solve(Sigma)
+
+# Calculate J
+Sig_Lam &lt;- Sigma %*% Lambda
+B &lt;- rbind(c(Sig_Lam[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[1,]),c(Sig_Lam[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[2,]),c(Sig_Lam[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[3,])) + Sig_Lam %x% diag(n)
+B &lt;- rbind(B, c(1,0,0,0,1,0,0,0,1))
+J &lt;- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
+J_G &lt;- J[-which(t(Lambda) == 0),]
+
+Sigma</code></pre>
+<pre><code>##          [,1]      [,2]      [,3]
+## [1,] 3.993967 1.0802666 1.4781297
+## [2,] 1.080267 2.2172229 0.3567899
+## [3,] 1.478130 0.3567899 1.9607843</code></pre>
+<pre class="r"><code>inv_Sigma</code></pre>
+<pre><code>##            [,1]        [,2]        [,3]
+## [1,]  0.3885204 -0.14645138 -0.26623593
+## [2,] -0.1464514  0.51982348  0.01581324
+## [3,] -0.2662359  0.01581324  0.70782351</code></pre>
+<pre class="r"><code>J_G</code></pre>
+<pre><code>##           [,1]      [,2]      [,3]      [,4]     [,5]      [,6]      [,7]
+## [1,] 6.1483493 0.9259428 9.5475281 0.9259428 0.000000 0.6705103 9.5475281
+## [2,] 0.0000000 0.0000000 3.6453679 0.0000000 0.000000 1.1175172 3.6453679
+## [3,] 3.1296681 1.9004768 3.9385526 1.9004768 0.000000 1.3762073 3.9385526
+## [4,] 0.7864663 2.1177900 1.5834875 2.1177900 4.157293 3.2679507 1.5834875
+## [5,] 0.0000000 0.0000000 1.3263013 0.0000000 0.000000 0.3690930 1.3263013
+## [6,] 1.4880952 0.2678571 0.9007515 0.2678571 1.562500 0.1939655 0.9007515
+##           [,8]      [,9]
+## [1,] 0.6705103 24.253468
+## [2,] 1.1175172 22.026266
+## [3,] 1.3762073 10.575135
+## [4,] 3.2679507  3.798404
+## [5,] 0.3690930 11.988735
+## [6,] 0.1939655  5.121379</code></pre>
+<pre class="r"><code>rankMatrix(J_G)</code></pre>
+<pre><code>## [1] 6
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 1.998401e-15</code></pre>
+<pre class="r"><code># Initialization
+n &lt;- 3
 Lambda_1 &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0.4,0,0.4))  # Changable coefficients
 Lambda_2 &lt;- rbind(c(0.5,0.7,0),c(0.4,0.6,0),c(0,0,0.4))  # Changable coefficients
 
@@ -731,6 +788,123 @@ J_G_1</code></pre>
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
 ## [1] 3.552714e-15</code></pre>
+</div>
+<div id="sigma-inverse" class="section level1">
+<h1>Sigma inverse</h1>
+<pre class="r"><code># Initialization
+n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0.6,0),c(0,0.6,0),c(0,0.9,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+# Calculate Sigma inverse
+vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+inv_Sigma &lt;- solve(Sigma)
+
+# Calculate J
+J_prime &lt;- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
+J &lt;- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
+
+J_G &lt;- J[-which(t(Lambda) == 0),]
+
+Sigma</code></pre>
+<pre><code>##           [,1]      [,2]     [,3]
+## [1,] 2.7261905 0.8035714 1.839756
+## [2,] 0.8035714 1.5625000 1.110197
+## [3,] 1.8397556 1.1101974 3.648770</code></pre>
+<pre class="r"><code>inv_Sigma</code></pre>
+<pre><code>##            [,1]       [,2]       [,3]
+## [1,]  0.5714183 -0.1137495 -0.2535061
+## [2,] -0.1137495  0.8391671 -0.1979762
+## [3,] -0.2535061 -0.1979762  0.4621234</code></pre>
+<pre class="r"><code>J_G</code></pre>
+<pre><code>##       [,1] [,2] [,3] [,4]  [,5]  [,6] [,7]  [,8]  [,9]
+## [1,] -1.00 -0.6    0 -0.6  0.00  0.00    0  0.00  0.00
+## [2,]  0.00 -0.5    0 -0.5 -1.20  0.00    0  0.00  0.00
+## [3,]  0.00  0.0    0  0.0 -1.20  0.00    0  0.00  0.00
+## [4,]  0.00  0.0    0  0.0 -1.80 -0.40    0 -0.40  0.00
+## [5,]  0.00  0.0    0  0.0  0.00 -0.90    0 -0.90 -0.80
+## [6,] -0.75  0.3    0  0.3  0.53  0.36    0  0.36 -0.84</code></pre>
+<pre class="r"><code>rankMatrix(J_G)</code></pre>
+<pre><code>## [1] 5
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 1.998401e-15</code></pre>
+<pre class="r"><code># Initialization
+n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0,0.8),c(0,0.6,0),c(0,0.8,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+# Calculate Sigma inverse
+vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+inv_Sigma &lt;- solve(Sigma)
+
+# Calculate J
+J_prime &lt;- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
+J &lt;- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
+
+J_G &lt;- J[-which(t(Lambda) == 0),]
+
+inv_Sigma</code></pre>
+<pre><code>##            [,1]       [,2]       [,3]
+## [1,]  0.2113026  0.0123759 -0.1644884
+## [2,]  0.0123759  0.7996736 -0.2613029
+## [3,] -0.1644884 -0.2613029  0.5265216</code></pre>
+<pre class="r"><code>J_G</code></pre>
+<pre><code>##       [,1] [,2] [,3] [,4] [,5]  [,6] [,7]  [,8] [,9]
+## [1,] -1.00    0 -0.8    0  0.0  0.00 -0.8  0.00  0.0
+## [2,]  0.00    0 -0.5    0  0.0  0.00 -0.5  0.00 -1.6
+## [3,]  0.00    0  0.0    0 -1.2  0.00  0.0  0.00  0.0
+## [4,]  0.00    0  0.0    0 -1.6 -0.40  0.0 -0.40  0.0
+## [5,]  0.00    0  0.0    0  0.0 -0.80  0.0 -0.80 -0.8
+## [6,] -0.75    0  0.4    0  0.0  0.32  0.4  0.32 -0.2</code></pre>
+<pre class="r"><code>rankMatrix(J_G)</code></pre>
+<pre><code>## [1] 5
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 1.998401e-15</code></pre>
+</div>
+<div id="upper-triangular" class="section level1">
+<h1>Upper triangular</h1>
+<pre class="r"><code># Initialization
+n &lt;- 3
+Lambda &lt;- rbind(c(0.5,0.7,0.8),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega &lt;- 1
+
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma &lt;- matrix(vec_Sigma, nrow = n)
+
+# Check if Sigma - omega * I is positive definite
+if (is.positive.definite(round(Sigma - omega * diag(n),10))) {
+  Lambda_rec &lt;- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
+}else{
+  print(&quot;Sigma - omega * I is not positive definite!&quot;)
+}
+
+print(&quot;Lambda:&quot;)</code></pre>
+<pre><code>## [1] &quot;Lambda:&quot;</code></pre>
+<pre class="r"><code>Lambda</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]  0.5  0.7  0.8
+## [2,]  0.0  0.6  0.0
+## [3,]  0.0  0.0  0.4</code></pre>
+<pre class="r"><code>print(&quot;Recovered Lambda: \n&quot;)</code></pre>
+<pre><code>## [1] &quot;Recovered Lambda: \n&quot;</code></pre>
+<pre class="r"><code>Lambda_rec</code></pre>
+<pre><code>##      [,1] [,2]          [,3]
+## [1,]  0.5  0.7  8.000000e-01
+## [2,]  0.0  0.6 -4.417058e-17
+## [3,]  0.0  0.0  4.000000e-01</code></pre>
 </div>
 
 
