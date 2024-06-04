@@ -178,6 +178,35 @@ optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
 ```{r}
 # Initialization
 n <- 3
+Lambda <- rbind(c(0.5,0.7,0.4),c(0.7,0.6,0),c(0.4,0,0.4))  # Changable coefficients
+
+omega <- 1
+
+# Calculate Sigma
+vec_Sigma <- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+inv_Sigma <- solve(Sigma)
+
+# Calculate J
+Sig_Lam <- Sigma %*% Lambda
+B <- rbind(c(Sig_Lam[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[1,]),c(Sig_Lam[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[2,]),c(Sig_Lam[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[3,])) + Sig_Lam %x% diag(n)
+B <- rbind(B, c(1,0,0,0,1,0,0,0,1))
+J <- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
+J_G <- J[-which(t(Lambda) == 0),]
+
+Sigma
+
+inv_Sigma
+
+J_G
+
+rankMatrix(J_G)
+```
+
+
+```{r}
+# Initialization
+n <- 3
 Lambda_1 <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0.4,0,0.4))  # Changable coefficients
 Lambda_2 <- rbind(c(0.5,0.7,0),c(0.4,0.6,0),c(0,0,0.4))  # Changable coefficients
 
