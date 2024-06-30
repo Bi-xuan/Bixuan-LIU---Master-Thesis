@@ -355,10 +355,6 @@ display: none;
 </div>
 
 
-<div id="case-1-1-edge" class="section level1">
-<h1>Case 1: 1 edge</h1>
-<div id="nodes" class="section level2">
-<h2>2 nodes</h2>
 <pre class="r"><code>library(&#39;fBasics&#39;)
 library(&#39;Matrix&#39;)
 library(&quot;matrixcalc&quot;)</code></pre>
@@ -367,112 +363,6 @@ library(&quot;matrixcalc&quot;)</code></pre>
 <pre><code>## The following objects are masked from &#39;package:fBasics&#39;:
 ## 
 ##     vec, vech</code></pre>
-<p>Detect direction.</p>
-<pre class="r"><code># Initialization
-n &lt;- 2
-Lambda_1 &lt;- rbind(c(0.6,0.5),c(0,0.4))  # Changable coefficients
-Lambda_2 &lt;- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
-
-omega &lt;- 1
-
-# Calculate Sigma
-vec_Sigma_1 &lt;- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
-Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 &lt;- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
-Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
-
-# Calculate J
-Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
-B_1 &lt;- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2])) + Sig_Lam_1 %x% diag(n)
-B_1 &lt;- rbind(B_1, c(1,0,0,1))
-J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 &lt;- J_1[-which(t(Lambda_1) == 0),]
-
-Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
-B_2 &lt;- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2])) + Sig_Lam_2 %x% diag(n)
-B_2 &lt;- rbind(B_2, c(1,0,0,1))
-J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 &lt;- J_2[-which(t(Lambda_2) == 0),]
-
-
-J_G_1</code></pre>
-<pre><code>##          [,1]      [,2]      [,3]     [,4]
-## [1,] 2.929688 2.5090352 2.5090352 2.066709
-## [2,] 0.000000 1.2335526 1.2335526 3.034931
-## [3,] 0.000000 0.4869287 0.4869287 2.822518
-## [4,] 1.562500 0.6167763 0.6167763 1.949209</code></pre>
-<pre class="r"><code>J_G_2</code></pre>
-<pre><code>##          [,1]      [,2]      [,3]     [,4]
-## [1,] 4.996397 0.1648859 0.1648859 0.000000
-## [2,] 3.034931 0.6265664 0.6265664 0.000000
-## [3,] 1.688731 1.3289018 1.3289018 1.133787
-## [4,] 2.321233 0.3132832 0.3132832 1.190476</code></pre>
-<pre class="r"><code>rankMatrix(J_G_1)</code></pre>
-<pre><code>## [1] 3
-## attr(,&quot;method&quot;)
-## [1] &quot;tolNorm2&quot;
-## attr(,&quot;useGrad&quot;)
-## [1] FALSE
-## attr(,&quot;tol&quot;)
-## [1] 8.881784e-16</code></pre>
-<pre class="r"><code>rankMatrix(J_G_2)</code></pre>
-<pre><code>## [1] 3
-## attr(,&quot;method&quot;)
-## [1] &quot;tolNorm2&quot;
-## attr(,&quot;useGrad&quot;)
-## [1] FALSE
-## attr(,&quot;tol&quot;)
-## [1] 8.881784e-16</code></pre>
-<pre class="r"><code>print(&quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;)</code></pre>
-<pre><code>## [1] &quot;Both Jacobian Matrices reach full rank, so the matroids are the same.&quot;</code></pre>
-<p>Conclusion: If there is only one edge in the graph, we can not detect
-its direction.</p>
-</div>
-<div id="nodes-1" class="section level2">
-<h2>3 nodes</h2>
-<pre class="r"><code># Initialization
-n &lt;- 3
-Lambda_1 &lt;- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
-Lambda_2 &lt;- rbind(c(0.5,0,0.7),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
-
-omega &lt;- 1
-
-# Calculate Sigma
-vec_Sigma_1 &lt;- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
-Sigma_1 &lt;- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 &lt;- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
-Sigma_2 &lt;- matrix(vec_Sigma_2, nrow = n)
-
-# Calculate J
-Sig_Lam_1 &lt;- Sigma_1 %*% Lambda_1
-B_1 &lt;- rbind(c(Sig_Lam_1[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[1,]),c(Sig_Lam_1[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[2,]),c(Sig_Lam_1[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[3,])) + Sig_Lam_1 %x% diag(n)
-B_1 &lt;- rbind(B_1, c(1,0,0,0,1,0,0,0,1))
-J_1 &lt;- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 &lt;- J_1[-c(3,4,6,7,8),]
-
-Sig_Lam_2 &lt;- Sigma_2 %*% Lambda_2
-B_2 &lt;- rbind(c(Sig_Lam_2[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[1,]),c(Sig_Lam_2[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[2,]),c(Sig_Lam_2[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[3,])) + Sig_Lam_2 %x% diag(n)
-B_2 &lt;- rbind(B_2, c(1,0,0,0,1,0,0,0,1))
-J_2 &lt;- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 &lt;- J_2[-c(2,4,6,7,8),]
-
-J_G_1</code></pre>
-<pre><code>##          [,1]      [,2] [,3]      [,4]     [,5] [,6] [,7] [,8]     [,9]
-## [1,] 1.777778 2.7936508    0 2.7936508 5.027778    0    0    0 0.000000
-## [2,] 0.000000 0.9523810    0 0.9523810 5.416667    0    0    0 0.000000
-## [3,] 0.000000 0.4761905    0 0.4761905 8.567708    0    0    0 0.000000
-## [4,] 0.000000 0.0000000    0 0.0000000 0.000000    0    0    0 1.133787
-## [5,] 1.333333 0.6666667    0 0.6666667 3.458333    0    0    0 1.190476</code></pre>
-<pre class="r"><code>J_G_2</code></pre>
-<pre><code>##          [,1] [,2]      [,3] [,4]     [,5] [,6]      [,7] [,8]     [,9]
-## [1,] 1.777778    0 2.2361111    0 0.000000    0 2.2361111    0 2.527778
-## [2,] 0.000000    0 0.8333333    0 0.000000    0 0.8333333    0 3.333333
-## [3,] 0.000000    0 0.0000000    0 2.929688    0 0.0000000    0 0.000000
-## [4,] 0.000000    0 0.3645833    0 0.000000    0 0.3645833    0 3.460176
-## [5,] 1.333333    0 0.5833333    0 1.562500    0 0.5833333    0 2.357143</code></pre>
-<p>The structures of J_G_1 and J_G_2 are clearly different, so the
-matroids are different. These models are identifiable.</p>
-</div>
 <div id="simulation-recover-parameters-in" class="section level2">
 <h2>Simulation: Recover parameters in </h2>
 <ol style="list-style-type: decimal">
@@ -581,17 +471,18 @@ optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)</code></pre>
 ## $message
 ## NULL</code></pre>
 </div>
-</div>
-<div id="case-2-2-edges" class="section level1">
-<h1>Case 2: 2 edges</h1>
+<div id="jacobian-matroids" class="section level1">
+<h1>Jacobian matroids</h1>
+<div id="nodes" class="section level2">
+<h2>3 nodes</h2>
 <pre class="r"><code># Initialization
 n &lt;- 3
-Lambda &lt;- rbind(c(0.5,0,0.7),c(0.2,0.6,0),c(0,0,0.7))  # Changable coefficients
+Lambda &lt;- rbind(c(0.5,0.8,0),c(0,0.6,0),c(0,0.9,0.7))  # Changable coefficients
 
 omega &lt;- 1
 
 # Calculate Sigma
-vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma &lt;- matrix(vec_Sigma, nrow = n)
 inv_Sigma &lt;- solve(Sigma)
 
@@ -603,32 +494,32 @@ J &lt;- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
 J_G &lt;- J[-which(t(Lambda) == 0),]
 
 Sigma</code></pre>
-<pre><code>##          [,1]      [,2]      [,3]
-## [1,] 3.993967 1.0802666 1.4781297
-## [2,] 1.080267 2.2172229 0.3567899
-## [3,] 1.478130 0.3567899 1.9607843</code></pre>
+<pre><code>##              [,1]       [,2]     [,3]
+## [1,] 1.333333e+00  0.7619048 0.000000
+## [2,] 7.619048e-01 10.1143751 2.129817
+## [3,] 4.517079e-17  2.1298174 1.960784</code></pre>
 <pre class="r"><code>inv_Sigma</code></pre>
-<pre><code>##            [,1]        [,2]        [,3]
-## [1,]  0.3885204 -0.14645138 -0.26623593
-## [2,] -0.1464514  0.51982348  0.01581324
-## [3,] -0.2662359  0.01581324  0.70782351</code></pre>
+<pre><code>##             [,1]        [,2]        [,3]
+## [1,]  0.79433197 -0.07758095  0.08426896
+## [2,] -0.07758095  0.13576666 -0.14747068
+## [3,]  0.08426896 -0.14747068  0.67018367</code></pre>
 <pre class="r"><code>J_G</code></pre>
-<pre><code>##           [,1]      [,2]      [,3]      [,4]     [,5]      [,6]      [,7]
-## [1,] 6.1483493 0.9259428 9.5475281 0.9259428 0.000000 0.6705103 9.5475281
-## [2,] 0.0000000 0.0000000 3.6453679 0.0000000 0.000000 1.1175172 3.6453679
-## [3,] 3.1296681 1.9004768 3.9385526 1.9004768 0.000000 1.3762073 3.9385526
-## [4,] 0.7864663 2.1177900 1.5834875 2.1177900 4.157293 3.2679507 1.5834875
-## [5,] 0.0000000 0.0000000 1.3263013 0.0000000 0.000000 0.3690930 1.3263013
-## [6,] 1.4880952 0.2678571 0.9007515 0.2678571 1.562500 0.1939655 0.9007515
-##           [,8]      [,9]
-## [1,] 0.6705103 24.253468
-## [2,] 1.1175172 22.026266
-## [3,] 1.3762073 10.575135
-## [4,] 3.2679507  3.798404
-## [5,] 0.3690930 11.988735
-## [6,] 0.1939655  5.121379</code></pre>
+<pre><code>##          [,1]         [,2]         [,3]         [,4]      [,5]         [,6]
+## [1,] 1.777778 3.192744e+00 0.000000e+00 3.192744e+00  6.566893 1.662653e-16
+## [2,] 0.000000 9.523810e-01 0.000000e+00 9.523810e-01  6.190476 1.567349e-16
+## [3,] 0.000000 5.442177e-01 0.000000e+00 5.442177e-01 32.013320 2.570469e+00
+## [4,] 0.000000 3.226485e-17 0.000000e+00 6.860983e-17 13.501521 2.366464e+00
+## [5,] 0.000000 2.233720e-17 3.474676e-17 1.129261e-15 25.530731 1.109241e+01
+## [6,] 1.333333 7.619048e-01 0.000000e+00 7.619048e-01 10.114375 2.129817e+00
+##              [,7]          [,8]          [,9]
+## [1,] 3.664052e-16 -1.374170e-16 -9.592512e-17
+## [2,] 3.454027e-16 -1.295402e-16 -9.042665e-17
+## [3,] 1.983705e-15  2.570469e+00 -4.191438e-16
+## [4,] 9.351493e-16  2.366464e+00 -1.525831e-16
+## [5,] 1.268226e-15  1.109241e+01  5.382545e+00
+## [6,] 3.479251e-16  2.129817e+00  1.960784e+00</code></pre>
 <pre class="r"><code>rankMatrix(J_G)</code></pre>
-<pre><code>## [1] 6
+<pre><code>## [1] 5
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
@@ -700,6 +591,9 @@ J_G_1</code></pre>
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
 ## [1] 1.998401e-15</code></pre>
+</div>
+<div id="nodes-1" class="section level2">
+<h2>4 nodes</h2>
 <pre class="r"><code># Initialization
 n &lt;- 4
 Lambda_1 &lt;- rbind(c(0.5,0.7,0,0),c(0,0.6,0,0),c(0,0,0.4,0.9),c(0,0,0,0.3))  # Changable coefficients
@@ -788,96 +682,960 @@ J_G_1</code></pre>
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
 ## [1] 3.552714e-15</code></pre>
-</div>
-<div id="sigma-inverse" class="section level1">
-<h1>Sigma inverse</h1>
 <pre class="r"><code># Initialization
-n &lt;- 3
-Lambda &lt;- rbind(c(0.5,0.6,0),c(0,0.6,0),c(0,0.9,0.4))  # Changable coefficients
+n &lt;- 4
+Lambda &lt;- rbind(c(0.5,0.6,0.6,0.8),c(0.9,0.6,0.9,0.6),c(0,0.5,0.4,0),c(0,0,0.4,0.3))  # Changable coefficients
 
 omega &lt;- 1
 
-# Calculate Sigma inverse
-vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+# Calculate Sigma
+vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma &lt;- matrix(vec_Sigma, nrow = n)
 inv_Sigma &lt;- solve(Sigma)
 
 # Calculate J
-J_prime &lt;- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
-J &lt;- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
-
+Sig_Lam &lt;- Sigma %*% Lambda
+B &lt;- rbind(c(Sig_Lam[1,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[1,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[1,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[1,]),c(Sig_Lam[2,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[2,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[2,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[2,]),c(Sig_Lam[3,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[3,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[3,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[3,]),c(Sig_Lam[4,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[4,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[4,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[4,])) + Sig_Lam %x% diag(n)
+B &lt;- rbind(B, c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1))
+J &lt;- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
+B_prime &lt;- B[-which(t(Lambda) == 0),]
 J_G &lt;- J[-which(t(Lambda) == 0),]
 
-Sigma</code></pre>
-<pre><code>##           [,1]      [,2]     [,3]
-## [1,] 2.7261905 0.8035714 1.839756
-## [2,] 0.8035714 1.5625000 1.110197
-## [3,] 1.8397556 1.1101974 3.648770</code></pre>
+Lambda</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4]
+## [1,]  0.5  0.6  0.6  0.8
+## [2,]  0.9  0.6  0.9  0.6
+## [3,]  0.0  0.5  0.4  0.0
+## [4,]  0.0  0.0  0.4  0.3</code></pre>
+<pre class="r"><code>Sigma</code></pre>
+<pre><code>##              [,1]       [,2]        [,3]         [,4]
+## [1,]  1.073970582 -0.4744591 -0.49324423 -0.001165758
+## [2,] -0.474459084  0.2870261 -0.95508365 -0.376388651
+## [3,] -0.493244235 -0.9550837  0.03069818 -0.299304659
+## [4,] -0.001165758 -0.3763887 -0.29930466  1.317725666</code></pre>
 <pre class="r"><code>inv_Sigma</code></pre>
-<pre><code>##            [,1]       [,2]       [,3]
-## [1,]  0.5714183 -0.1137495 -0.2535061
-## [2,] -0.1137495  0.8391671 -0.1979762
-## [3,] -0.2535061 -0.1979762  0.4621234</code></pre>
+<pre><code>##            [,1]       [,2]        [,3]       [,4]
+## [1,]  0.6435118 -0.2928643 -0.34414433 -0.1612510
+## [2,] -0.2928643  0.1675060 -0.79848149 -0.1337784
+## [3,] -0.3441443 -0.7984815  0.01927451 -0.2240008
+## [4,] -0.1612510 -0.1337784 -0.22400080  0.6696499</code></pre>
 <pre class="r"><code>J_G</code></pre>
-<pre><code>##       [,1] [,2] [,3] [,4]  [,5]  [,6] [,7]  [,8]  [,9]
-## [1,] -1.00 -0.6    0 -0.6  0.00  0.00    0  0.00  0.00
-## [2,]  0.00 -0.5    0 -0.5 -1.20  0.00    0  0.00  0.00
-## [3,]  0.00  0.0    0  0.0 -1.20  0.00    0  0.00  0.00
-## [4,]  0.00  0.0    0  0.0 -1.80 -0.40    0 -0.40  0.00
-## [5,]  0.00  0.0    0  0.0  0.00 -0.90    0 -0.90 -0.80
-## [6,] -0.75  0.3    0  0.3  0.53  0.36    0  0.36 -0.84</code></pre>
+<pre><code>##              [,1]        [,2]        [,3]         [,4]        [,5]         [,6]
+##  [1,]  0.05318113 -0.05511943 -0.09587379  0.522958609 -0.05511943 -0.161050491
+##  [2,] -0.12196295 -0.09171906 -0.05156674 -0.035461910 -0.09171906 -0.011018590
+##  [3,] -0.09918662 -0.04782156 -0.01184892 -0.145184317 -0.04782156 -0.038704395
+##  [4,] -0.06964793 -0.06126025 -0.03714309  0.047188836 -0.06126025  0.003578123
+##  [5,]  0.24833533 -0.27231692 -0.17366812 -0.223350606 -0.27231692  0.480430735
+##  [6,] -0.03434780  0.32693847  0.30826717  0.189667523  0.32693847 -0.395068477
+##  [7,]  0.14786786  0.08538804  0.34375564  0.320770333  0.08538804  0.042039076
+##  [8,]  0.21684336  0.15780215  0.04253172  0.165139870  0.15780215  0.025445169
+##  [9,]  0.28782090 -0.13793222  1.00221579  0.272753266 -0.13793222  0.419758850
+## [10,]  0.47118747  0.34833778 -0.18366872  0.935022125  0.34833778  0.049242711
+## [11,]  0.13163504  0.02159216 -0.17367932  0.199998986  0.02159216  0.097893013
+## [12,]  0.16812065  0.11532701 -0.02604853 -0.271193921  0.11532701  0.027526144
+## [13,]  1.07397058 -0.47445908 -0.49324423 -0.001165758 -0.47445908  0.287026064
+##              [,7]        [,8]        [,9]       [,10]         [,11]
+##  [1,] -0.05982782 -0.02859200 -0.09587379 -0.05982782  0.0435577145
+##  [2,] -0.15381457  0.43757792 -0.05156674 -0.15381457 -0.0001931491
+##  [3,]  0.10214920 -0.05205058 -0.01184892  0.10214920 -0.0352490975
+##  [4,]  0.04099183  0.06870679 -0.03714309  0.04099183  0.2766455464
+##  [5,]  0.56869948  0.18302496 -0.17366812  0.56869948  0.7084972816
+##  [6,]  0.39509059  0.20302317  0.30826717  0.39509059  1.1284572449
+##  [7,] -0.30964062  0.38411383  0.34375564 -0.30964062 -0.4331032804
+##  [8,] -0.14261774 -0.52652204  0.04253172 -0.14261774 -0.4613785231
+##  [9,]  1.15679612  0.11382593  1.00221579  1.15679612  2.7049179064
+## [10,] -0.14732462  0.83110451 -0.18366872 -0.14732462 -0.7612774098
+## [11,] -0.10106259  0.15725516 -0.17367932 -0.10106259  0.6582468084
+## [12,] -0.08963524 -0.33677075 -0.02604853 -0.08963524 -0.2261275570
+## [13,] -0.95508365 -0.37638865 -0.49324423 -0.95508365  0.0306981798
+##              [,12]        [,13]       [,14]        [,15]       [,16]
+##  [1,]  0.116476179  0.522958609 -0.02859200  0.116476179  0.18007704
+##  [2,] -0.017535054 -0.035461910  0.43757792 -0.017535054 -0.03249115
+##  [3,]  0.395065212 -0.145184317 -0.05205058  0.395065212 -0.23269055
+##  [4,]  0.139479841  0.047188836  0.06870679  0.139479841  1.20174865
+##  [5,]  0.171541170 -0.223350606  0.18302496  0.171541170  0.03202871
+##  [6,]  0.632375384  0.189667523  0.20302317  0.632375384  0.34481587
+##  [7,]  0.365253445  0.320770333  0.38411383  0.365253445  0.53186017
+##  [8,] -0.609985670  0.165139870 -0.52652204 -0.609985670 -0.49602986
+##  [9,]  1.202328982  0.272753266  0.11382593  1.202328982  0.41187092
+## [10,]  0.629103275  0.935022125  0.83110451  0.629103275  1.54032953
+## [11,]  0.507841308  0.199998986  0.15725516  0.507841308  0.32178874
+## [12,] -0.008827763 -0.271193921 -0.33677075 -0.008827763  0.34496024
+## [13,] -0.299304659 -0.001165758 -0.37638865 -0.299304659  1.31772567</code></pre>
 <pre class="r"><code>rankMatrix(J_G)</code></pre>
-<pre><code>## [1] 5
+<pre><code>## [1] 10
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
-## [1] 1.998401e-15</code></pre>
-<pre class="r"><code># Initialization
-n &lt;- 3
-Lambda &lt;- rbind(c(0.5,0,0.8),c(0,0.6,0),c(0,0.8,0.4))  # Changable coefficients
-
-omega &lt;- 1
-
-# Calculate Sigma inverse
-vec_Sigma &lt;- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
-Sigma &lt;- matrix(vec_Sigma, nrow = n)
-inv_Sigma &lt;- solve(Sigma)
-
-# Calculate J
-J_prime &lt;- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
-J &lt;- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
-
-J_G &lt;- J[-which(t(Lambda) == 0),]
-
-inv_Sigma</code></pre>
-<pre><code>##            [,1]       [,2]       [,3]
-## [1,]  0.2113026  0.0123759 -0.1644884
-## [2,]  0.0123759  0.7996736 -0.2613029
-## [3,] -0.1644884 -0.2613029  0.5265216</code></pre>
-<pre class="r"><code>J_G</code></pre>
-<pre><code>##       [,1] [,2] [,3] [,4] [,5]  [,6] [,7]  [,8] [,9]
-## [1,] -1.00    0 -0.8    0  0.0  0.00 -0.8  0.00  0.0
-## [2,]  0.00    0 -0.5    0  0.0  0.00 -0.5  0.00 -1.6
-## [3,]  0.00    0  0.0    0 -1.2  0.00  0.0  0.00  0.0
-## [4,]  0.00    0  0.0    0 -1.6 -0.40  0.0 -0.40  0.0
-## [5,]  0.00    0  0.0    0  0.0 -0.80  0.0 -0.80 -0.8
-## [6,] -0.75    0  0.4    0  0.0  0.32  0.4  0.32 -0.2</code></pre>
-<pre class="r"><code>rankMatrix(J_G)</code></pre>
-<pre><code>## [1] 5
+## [1] 3.552714e-15</code></pre>
+<pre class="r"><code>for (i in 1:16){
+  for (j in (i+1):16){
+    print(rankMatrix(J_G[,-c(i,j)]))
+  }
+}</code></pre>
+<pre><code>## [1] 9
 ## attr(,&quot;method&quot;)
 ## [1] &quot;tolNorm2&quot;
 ## attr(,&quot;useGrad&quot;)
 ## [1] FALSE
 ## attr(,&quot;tol&quot;)
-## [1] 1.998401e-15</code></pre>
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 8
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 10
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.108624e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.330669e-15
+## [1] 9
+## attr(,&quot;method&quot;)
+## [1] &quot;tolNorm2&quot;
+## attr(,&quot;useGrad&quot;)
+## [1] FALSE
+## attr(,&quot;tol&quot;)
+## [1] 3.330669e-15</code></pre>
+</div>
 </div>
 <div id="upper-triangular" class="section level1">
 <h1>Upper triangular</h1>
 <pre class="r"><code># Initialization
 n &lt;- 3
-Lambda &lt;- rbind(c(0.5,0.7,0.8),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda &lt;- rbind(c(0.5,0.7,0),c(0,0.9,0),c(0,0.8,0.4))  # Changable coefficients
 
 omega &lt;- 1
 
@@ -885,26 +1643,34 @@ vec_Sigma &lt;- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag
 Sigma &lt;- matrix(vec_Sigma, nrow = n)
 
 # Check if Sigma - omega * I is positive definite
-if (is.positive.definite(round(Sigma - omega * diag(n),10))) {
+if (is.positive.definite(round(Sigma - omega * diag(n),10)) &amp;&amp; is.positive.definite(round(Sigma,10))) {
   Lambda_rec &lt;- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
+  P &lt;- chol(Sigma) %*% Lambda %*% solve(chol(Sigma - omega * diag(n)))
 }else{
-  print(&quot;Sigma - omega * I is not positive definite!&quot;)
+  print(&quot;Sigma - omega * I or Sigma is not positive definite!&quot;)
 }
 
 print(&quot;Lambda:&quot;)</code></pre>
 <pre><code>## [1] &quot;Lambda:&quot;</code></pre>
 <pre class="r"><code>Lambda</code></pre>
 <pre><code>##      [,1] [,2] [,3]
-## [1,]  0.5  0.7  0.8
-## [2,]  0.0  0.6  0.0
-## [3,]  0.0  0.0  0.4</code></pre>
-<pre class="r"><code>print(&quot;Recovered Lambda: \n&quot;)</code></pre>
-<pre><code>## [1] &quot;Recovered Lambda: \n&quot;</code></pre>
+## [1,]  0.5  0.7  0.0
+## [2,]  0.0  0.9  0.0
+## [3,]  0.0  0.8  0.4</code></pre>
+<pre class="r"><code>print(&quot;Recovered Lambda:&quot;)</code></pre>
+<pre><code>## [1] &quot;Recovered Lambda:&quot;</code></pre>
 <pre class="r"><code>Lambda_rec</code></pre>
-<pre><code>##      [,1] [,2]          [,3]
-## [1,]  0.5  0.7  8.000000e-01
-## [2,]  0.0  0.6 -4.417058e-17
-## [3,]  0.0  0.0  4.000000e-01</code></pre>
+<pre><code>##      [,1]      [,2]        [,3]
+## [1,]  0.5 0.6748939 -0.01156654
+## [2,]  0.0 0.9394524  0.01817599
+## [3,]  0.0 0.0000000  0.38320196</code></pre>
+<pre class="r"><code>print(&quot;Orthogonal matrix:&quot;)</code></pre>
+<pre><code>## [1] &quot;Orthogonal matrix:&quot;</code></pre>
+<pre class="r"><code>P</code></pre>
+<pre><code>##      [,1]          [,2]          [,3]
+## [1,]    1 -3.897748e-18  2.003815e-18
+## [2,]    0  9.807249e-01 -1.953936e-01
+## [3,]    0  1.953936e-01  9.807249e-01</code></pre>
 </div>
 
 

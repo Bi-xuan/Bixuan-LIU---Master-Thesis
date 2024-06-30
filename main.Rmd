@@ -8,89 +8,11 @@ date: "2024-04-19"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Case 1: 1 edge
-
-## 2 nodes
-
 ```{r}
 library('fBasics')
 library('Matrix')
 library("matrixcalc")
 ```
-
-
-Detect direction.
-```{r}
-# Initialization
-n <- 2
-Lambda_1 <- rbind(c(0.6,0.5),c(0,0.4))  # Changable coefficients
-Lambda_2 <- rbind(c(0.6,0),c(0.5,0.4))  # Changable coefficients
-
-omega <- 1
-
-# Calculate Sigma
-vec_Sigma_1 <- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
-Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 <- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
-Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
-
-# Calculate J
-Sig_Lam_1 <- Sigma_1 %*% Lambda_1
-B_1 <- rbind(c(Sig_Lam_1[1,1],Sig_Lam_1[1,2],0,0),c(0,0,Sig_Lam_1[1,1],Sig_Lam_1[1,2]),c(Sig_Lam_1[2,1],Sig_Lam_1[2,2],0,0),c(0,0,Sig_Lam_1[2,1],Sig_Lam_1[2,2])) + Sig_Lam_1 %x% diag(n)
-B_1 <- rbind(B_1, c(1,0,0,1))
-J_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 <- J_1[-which(t(Lambda_1) == 0),]
-
-Sig_Lam_2 <- Sigma_2 %*% Lambda_2
-B_2 <- rbind(c(Sig_Lam_2[1,1],Sig_Lam_2[1,2],0,0),c(0,0,Sig_Lam_2[1,1],Sig_Lam_2[1,2]),c(Sig_Lam_2[2,1],Sig_Lam_2[2,2],0,0),c(0,0,Sig_Lam_2[2,1],Sig_Lam_2[2,2])) + Sig_Lam_2 %x% diag(n)
-B_2 <- rbind(B_2, c(1,0,0,1))
-J_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 <- J_2[-which(t(Lambda_2) == 0),]
-
-
-J_G_1
-J_G_2
-
-rankMatrix(J_G_1)
-rankMatrix(J_G_2)
-
-print("Both Jacobian Matrices reach full rank, so the matroids are the same.")
-```
-Conclusion: If there is only one edge in the graph, we can not detect its direction.
-
-## 3 nodes
-
-```{r}
-# Initialization
-n <- 3
-Lambda_1 <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
-Lambda_2 <- rbind(c(0.5,0,0.7),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
-
-omega <- 1
-
-# Calculate Sigma
-vec_Sigma_1 <- solve(diag(n**2)-(t(Lambda_1) %x% t(Lambda_1))) %*% vec(omega * diag(n))
-Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 <- solve(diag(n**2)-(t(Lambda_2) %x% t(Lambda_2))) %*% vec(omega * diag(n))
-Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
-
-# Calculate J
-Sig_Lam_1 <- Sigma_1 %*% Lambda_1
-B_1 <- rbind(c(Sig_Lam_1[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[1,]),c(Sig_Lam_1[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[2,]),c(Sig_Lam_1[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[3,])) + Sig_Lam_1 %x% diag(n)
-B_1 <- rbind(B_1, c(1,0,0,0,1,0,0,0,1))
-J_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 <- J_1[-c(3,4,6,7,8),]
-
-Sig_Lam_2 <- Sigma_2 %*% Lambda_2
-B_2 <- rbind(c(Sig_Lam_2[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[1,]),c(Sig_Lam_2[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[2,]),c(Sig_Lam_2[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[3,])) + Sig_Lam_2 %x% diag(n)
-B_2 <- rbind(B_2, c(1,0,0,0,1,0,0,0,1))
-J_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 <- J_2[-c(2,4,6,7,8),]
-
-J_G_1
-J_G_2
-```
-The structures of J_G_1 and J_G_2 are clearly different, so the matroids are different. These models are identifiable.
 
 ## Simulation: Recover parameters in \Lambda
 
@@ -157,17 +79,19 @@ obj_fn <- function(par,Sigma,omega) {
 optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
 ```
 
-# Case 2: 2 edges
+# Jacobian matroids
+
+## 3 nodes
 
 ```{r}
 # Initialization
 n <- 3
-Lambda <- rbind(c(0.5,0,0.7),c(0.2,0.6,0),c(0,0,0.7))  # Changable coefficients
+Lambda <- rbind(c(0.5,0.8,0),c(0,0.6,0),c(0,0.9,0.7))  # Changable coefficients
 
 omega <- 1
 
 # Calculate Sigma
-vec_Sigma <- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
 inv_Sigma <- solve(Sigma)
 
@@ -222,6 +146,8 @@ rankMatrix(J_G_1)
 rankMatrix(J_G_2)
 ```
 
+## 4 nodes
+
 ```{r}
 # Initialization
 n <- 4
@@ -257,25 +183,27 @@ rankMatrix(J_G_1)
 rankMatrix(J_G_2)
 ```
 
-# Sigma inverse
-
 ```{r}
 # Initialization
-n <- 3
-Lambda <- rbind(c(0.5,0.6,0),c(0,0.6,0),c(0,0.9,0.4))  # Changable coefficients
+n <- 4
+Lambda <- rbind(c(0.5,0.6,0.6,0.8),c(0.9,0.6,0.9,0.6),c(0,0.5,0.4,0),c(0,0,0.4,0.3))  # Changable coefficients
 
 omega <- 1
 
-# Calculate Sigma inverse
-vec_Sigma <- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
+# Calculate Sigma
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
 inv_Sigma <- solve(Sigma)
 
 # Calculate J
-J_prime <- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
-J <- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
-
+Sig_Lam <- Sigma %*% Lambda
+B <- rbind(c(Sig_Lam[1,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[1,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[1,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[1,]),c(Sig_Lam[2,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[2,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[2,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[2,]),c(Sig_Lam[3,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[3,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[3,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[3,]),c(Sig_Lam[4,],rep(0L,3*n)),c(rep(0L,n),Sig_Lam[4,],rep(0L,2*n)),c(rep(0L,2*n),Sig_Lam[4,],rep(0L,n)),c(rep(0L,3*n),Sig_Lam[4,])) + Sig_Lam %x% diag(n)
+B <- rbind(B, c(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1))
+J <- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
+B_prime <- B[-which(t(Lambda) == 0),]
 J_G <- J[-which(t(Lambda) == 0),]
+
+Lambda
 
 Sigma
 
@@ -285,30 +213,12 @@ J_G
 
 rankMatrix(J_G)
 ```
-
 ```{r}
-# Initialization
-n <- 3
-Lambda <- rbind(c(0.5,0,0.8),c(0,0.6,0),c(0,0.8,0.4))  # Changable coefficients
-
-omega <- 1
-
-# Calculate Sigma inverse
-vec_Sigma <- solve(diag(n**2)-(Lambda %x% Lambda)) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-inv_Sigma <- solve(Sigma)
-
-# Calculate J
-J_prime <- -omega^{-1} * (rbind(c(Lambda[1,],rep(0L,2*n)),c(rep(0L,n),Lambda[1,],rep(0L,n)),c(rep(0L,2*n),Lambda[1,]),c(Lambda[2,],rep(0L,2*n)),c(rep(0L,n),Lambda[2,],rep(0L,n)),c(rep(0L,2*n),Lambda[2,]),c(Lambda[3,],rep(0L,2*n)),c(rep(0L,n),Lambda[3,],rep(0L,n)),c(rep(0L,2*n),Lambda[3,])) + Lambda %x% diag(n))
-J <- rbind(J_prime,-omega^{-2} * t(vec(diag(n)-t(Lambda) %*% Lambda)))
-
-J_G <- J[-which(t(Lambda) == 0),]
-
-inv_Sigma
-
-J_G
-
-rankMatrix(J_G)
+for (i in 1:16){
+  for (j in (i+1):16){
+    print(rankMatrix(J_G[,-c(i,j)]))
+  }
+}
 ```
 
 # Upper triangular
@@ -316,7 +226,7 @@ rankMatrix(J_G)
 ```{r}
 # Initialization
 n <- 3
-Lambda <- rbind(c(0.5,0.7,0.8),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda <- rbind(c(0.5,0.7,0),c(0,0.9,0),c(0,0.8,0.4))  # Changable coefficients
 
 omega <- 1
 
@@ -324,16 +234,19 @@ vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n)
 Sigma <- matrix(vec_Sigma, nrow = n)
 
 # Check if Sigma - omega * I is positive definite
-if (is.positive.definite(round(Sigma - omega * diag(n),10))) {
+if (is.positive.definite(round(Sigma - omega * diag(n),10)) && is.positive.definite(round(Sigma,10))) {
   Lambda_rec <- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
+  P <- chol(Sigma) %*% Lambda %*% solve(chol(Sigma - omega * diag(n)))
 }else{
-  print("Sigma - omega * I is not positive definite!")
+  print("Sigma - omega * I or Sigma is not positive definite!")
 }
 
 print("Lambda:")
 Lambda
-print("Recovered Lambda: \n")
+print("Recovered Lambda:")
 Lambda_rec
+print("Orthogonal matrix:")
+P
 ```
 
 
