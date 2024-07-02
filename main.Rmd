@@ -249,6 +249,118 @@ print("Orthogonal matrix:")
 P
 ```
 
+# Maximal classes
+
+Remark: setequal(a,b), setdiff(a,b)
+
+## Algorithm 1: graph -> maximal classes
+
+```{r}
+library("igraph")
+```
+
+```{r}
+n <- 6
+g <- make_graph(edges = c(2, 1, 3, 1, 1, 4, 6, 4, 4, 5), n = n, directed = TRUE)
+# g <- make_graph(edges = c(2, 1, 3, 1, 6, 4, 4, 5, 5, 6), n = n, directed = TRUE)
+
+lbs <- rep(0L,n) # Labels for the nodes, global variable
+maxc <- matrix(0,n,n) # Maximal classes, global variable
+```
+
+```{r}
+search_maximal_class <- function(adj_g,i,j) {
+  lbs[i] <<- 1
+  maxc[j,i] <<- i
+  
+  for(w in 1:n) {
+    if(adj_g[i,w] == 1 & !(w %in% maxc[j,])) {
+      search_maximal_class(adj_g,w,j)
+    }
+  }
+}
+
+get_maximal_class <- function(g) {
+  lbs <<- rep(0L,n)
+  maxc <<- matrix(0,n,n)
+  adj_g <- as_adjacency_matrix(g)
+  
+  num <- 0
+  
+  for(i in 1:n) {
+    if(all(adj_g[,i] == 0)) {
+      search_maximal_class(adj_g,i,i)
+      num <- num + 1
+    }
+  }
+  
+  for(i in 1:n){
+    # Loops
+    if(lbs[i] == 0) {
+      search_maximal_class(adj_g,i,i)
+      num <- num + 1
+    }
+  }
+  
+  print(paste("Number of maximal classes: ", num))
+  print(maxc)
+}
+```
+
+```{r}
+get_maximal_class(g)
+```
+
+## Algorithm 2: maximal classes -> graph
+
+```{r}
+find_source <- function(a,b) {
+  target <- intersect(a,b)
+  source_1 <- setdiff(a,b)
+  source_2 <- setdiff(b,a)
+  
+  if(length(source_1) != 0 & length(source_2) != 0) {
+    edgs <<- append(edgs, list(list(source_1,target)))
+    edgs <<- append(edgs, list(list(source_2,target)))
+  }else {
+    print("There is something wrong with maximal classes.")
+  }
+}
+
+update_edges <- function(c) {
+  del_edgs <- c()
+  for(i in 1:length(edgs)) {
+    if(length(intersect(edgs[[c(i,2)]],c)) != 0){
+        find_source(edgs[[c(i,2)]],c)
+        edgs <<- append(edgs, list(list(edgs[[c(i,1)]],setdiff(edgs[[c(i,2)]],c))))
+        del_edgs <- c(del_edgs, i)
+    }
+  }
+  edgs <<- edgs[-del_edgs]
+  edgs <<- unique(edgs)
+}
+
+find_graph <- function(maxc) {
+  num_maxc <- length(maxc)
+  find_source(maxc[[1]],maxc[[2]])
+  if(length(maxc) > 2) {
+    for(i in 3:length(maxc)) {
+      update_edges(maxc[[i]])
+    }
+  }
+}
+```
+
+```{r}
+edgs <- list() # List of edges recovered
+# maxc <- list(c(1,2,4,5),c(1,3,4,5),c(4,5,6))
+maxc <- list(c(2,1,4,5,6),c(3,1,4,5,6))
+find_graph(maxc)
+```
+
+
+
+
 
 
 

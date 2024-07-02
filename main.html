@@ -1672,6 +1672,118 @@ print(&quot;Lambda:&quot;)</code></pre>
 ## [2,]    0  9.807249e-01 -1.953936e-01
 ## [3,]    0  1.953936e-01  9.807249e-01</code></pre>
 </div>
+<div id="maximal-classes" class="section level1">
+<h1>Maximal classes</h1>
+<p>Remark: setequal(a,b), setdiff(a,b)</p>
+<div id="algorithm-1-graph---maximal-classes" class="section level2">
+<h2>Algorithm 1: graph -&gt; maximal classes</h2>
+<pre class="r"><code>library(&quot;igraph&quot;)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;igraph&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:matrixcalc&#39;:
+## 
+##     %s%</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     decompose, spectrum</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     union</code></pre>
+<pre class="r"><code>n &lt;- 6
+g &lt;- make_graph(edges = c(2, 1, 3, 1, 1, 4, 6, 4, 4, 5), n = n, directed = TRUE)
+# g &lt;- make_graph(edges = c(2, 1, 3, 1, 6, 4, 4, 5, 5, 6), n = n, directed = TRUE)
+
+lbs &lt;- rep(0L,n) # Labels for the nodes, global variable
+maxc &lt;- matrix(0,n,n) # Maximal classes, global variable</code></pre>
+<pre class="r"><code>search_maximal_class &lt;- function(adj_g,i,j) {
+  lbs[i] &lt;&lt;- 1
+  maxc[j,i] &lt;&lt;- i
+  
+  for(w in 1:n) {
+    if(adj_g[i,w] == 1 &amp; !(w %in% maxc[j,])) {
+      search_maximal_class(adj_g,w,j)
+    }
+  }
+}
+
+get_maximal_class &lt;- function(g) {
+  lbs &lt;&lt;- rep(0L,n)
+  maxc &lt;&lt;- matrix(0,n,n)
+  adj_g &lt;- as_adjacency_matrix(g)
+  
+  num &lt;- 0
+  
+  for(i in 1:n) {
+    if(all(adj_g[,i] == 0)) {
+      search_maximal_class(adj_g,i,i)
+      num &lt;- num + 1
+    }
+  }
+  
+  for(i in 1:n){
+    # Loops
+    if(lbs[i] == 0) {
+      search_maximal_class(adj_g,i,i)
+      num &lt;- num + 1
+    }
+  }
+  
+  print(paste(&quot;Number of maximal classes: &quot;, num))
+  print(maxc)
+}</code></pre>
+<pre class="r"><code>get_maximal_class(g)</code></pre>
+<pre><code>## [1] &quot;Number of maximal classes:  3&quot;
+##      [,1] [,2] [,3] [,4] [,5] [,6]
+## [1,]    0    0    0    0    0    0
+## [2,]    1    2    0    4    5    0
+## [3,]    1    0    3    4    5    0
+## [4,]    0    0    0    0    0    0
+## [5,]    0    0    0    0    0    0
+## [6,]    0    0    0    4    5    6</code></pre>
+</div>
+<div id="algorithm-2-maximal-classes---graph" class="section level2">
+<h2>Algorithm 2: maximal classes -&gt; graph</h2>
+<pre class="r"><code>find_source &lt;- function(a,b) {
+  target &lt;- intersect(a,b)
+  source_1 &lt;- setdiff(a,b)
+  source_2 &lt;- setdiff(b,a)
+  
+  if(length(source_1) != 0 &amp; length(source_2) != 0) {
+    edgs &lt;&lt;- append(edgs, list(list(source_1,target)))
+    edgs &lt;&lt;- append(edgs, list(list(source_2,target)))
+  }else {
+    print(&quot;There is something wrong with maximal classes.&quot;)
+  }
+}
+
+update_edges &lt;- function(c) {
+  del_edgs &lt;- c()
+  for(i in 1:length(edgs)) {
+    if(length(intersect(edgs[[c(i,2)]],c)) != 0){
+        find_source(edgs[[c(i,2)]],c)
+        edgs &lt;&lt;- append(edgs, list(list(edgs[[c(i,1)]],setdiff(edgs[[c(i,2)]],c))))
+        del_edgs &lt;- c(del_edgs, i)
+    }
+  }
+  edgs &lt;&lt;- edgs[-del_edgs]
+  edgs &lt;&lt;- unique(edgs)
+}
+
+find_graph &lt;- function(maxc) {
+  num_maxc &lt;- length(maxc)
+  find_source(maxc[[1]],maxc[[2]])
+  if(length(maxc) &gt; 2) {
+    for(i in 3:length(maxc)) {
+      update_edges(maxc[[i]])
+    }
+  }
+}</code></pre>
+<pre class="r"><code>edgs &lt;- list() # List of edges recovered
+# maxc &lt;- list(c(1,2,4,5),c(1,3,4,5),c(4,5,6))
+maxc &lt;- list(c(2,1,4,5,6),c(3,1,4,5,6))
+find_graph(maxc)</code></pre>
+</div>
+</div>
 
 
 

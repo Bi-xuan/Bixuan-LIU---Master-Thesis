@@ -290,6 +290,16 @@
       ],
       "Hash": "b8552d117e1b808b09a832f589b79035"
     },
+    "matrixcalc": {
+      "Package": "matrixcalc",
+      "Version": "1.0-6",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "d2ef06fb3e84b679a20de1fc2204b63f"
+    },
     "memoise": {
       "Package": "memoise",
       "Version": "2.0.1",
