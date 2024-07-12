@@ -16,10 +16,10 @@ library("matrixcalc")
 
 ## Simulation: Recover parameters in \Lambda
 
-1. Diagonal values unknown
+n = 3
 ```{r}
 n <- 3
-Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda <- rbind(c(0.5,0,0.9),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
 
 omega <- 1
 
@@ -29,18 +29,18 @@ Sigma <- matrix(vec_Sigma, nrow = n)
 # Objective function
 obj_fn <- function(par,Sigma,omega) {
   n <- 3
-  Lambda <- rbind(c(par[1],par[2],par[3]),c(0,par[4],par[5]),c(0,0,par[6]))
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
+  non_zero_par <- c(Lambda[-c(1,5,9)])
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(par[10] * (length(which(abs(non_zero_par) > 1e-02))) - 2)
   return (obj)
 }
 
-optim(par=rep(0L,6),obj_fn,Sigma = Sigma,omega = omega)
+optim(par=c(runif(9,0,1),10), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega)
 ```
 
-2. Diagonal values known
 ```{r}
 n <- 3
-Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda <- rbind(c(0.5,0,0.9),c(0,0.6,0.8),c(0,0,0.4))  # Changable coefficients
 
 omega <- 1
 
@@ -48,15 +48,85 @@ vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n)
 Sigma <- matrix(vec_Sigma, nrow = n)
 
 # Objective function
-obj_fn <- function(par,Sigma,omega) {
+obj_fn <- function(par,Sigma,omega,gamma) {
   n <- 3
-  Lambda <- rbind(c(0.5,par[1],par[2]),c(0,0.6,par[3]),c(0,0,0.4))
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
+  non_zero_par <- c(Lambda[-c(1,5,9)])
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(gamma * sum(abs(non_zero_par)))
   return (obj)
 }
 
-optim(par=rep(0L,3),obj_fn,Sigma = Sigma,omega = omega)
+gamma <- 1
+res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma)
+while(1) {
+  while (res$convergence) {
+    res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma)
+  }
+  if (length(which(abs(res$par[-c(1,5,9)]) > 0.01)) == 2) {
+    print(gamma)
+    break
+  }else{
+   gamma <- gamma + 1
+  }
+}
+res
+matrix(res$par, nrow = 3)
 ```
+
+
+n = 4
+```{r}
+n <- 4
+Lambda <- rbind(c(0.5,0.9,0,0),c(0,0.6,0,0.3),c(0,0,0.4,0.8),c(0,0,0,0.7))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega,gamma) {
+  n <- 4
+  Lambda <- t(matrix(par,nrow=n))
+  non_zero_par <- c(Lambda[-c(1,6,11,16)])
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(gamma * sum(abs(non_zero_par)))
+  return (obj)
+}
+
+gamma <- 0.1
+res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma)
+while(1) {
+  while (res$convergence) {
+    res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma)
+  }
+  if (length(which(abs(res$par[-c(1,6,11,16)]) > 0.01)) == 3) {
+    print(gamma)
+    break
+  }else{
+   gamma <- gamma + 0.1 
+  }
+}
+res
+matrix(res$par, nrow = 4)
+```
+
+
+
+```{r}
+# Cholesky
+n <- 4
+Lambda <- rbind(c(0.3,0,0.4,0),c(0,0.5,0.8,0),c(0,0,0.6,0),c(0,0,0.4,0.9))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_prime <- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
+
+Lambda_prime
+```
+
 
 3. Recover parameters with support known
 ```{r}
@@ -86,7 +156,7 @@ optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
 ```{r}
 # Initialization
 n <- 3
-Lambda <- rbind(c(0.5,0.8,0),c(0,0.6,0),c(0,0.9,0.7))  # Changable coefficients
+Lambda <- rbind(c(0.5,0.9,0),c(0,0.6,0),c(0,0.9,0.7))  # Changable coefficients
 
 omega <- 1
 
@@ -99,6 +169,7 @@ inv_Sigma <- solve(Sigma)
 Sig_Lam <- Sigma %*% Lambda
 B <- rbind(c(Sig_Lam[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[1,]),c(Sig_Lam[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[2,]),c(Sig_Lam[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam[3,])) + Sig_Lam %x% diag(n)
 B <- rbind(B, c(1,0,0,0,1,0,0,0,1))
+B_prime <- B[-which(t(Lambda) == 0),]
 J <- B %*% solve(diag(n**2)-(Lambda %x% Lambda))
 J_G <- J[-which(t(Lambda) == 0),]
 
@@ -111,40 +182,38 @@ J_G
 rankMatrix(J_G)
 ```
 
-
 ```{r}
 # Initialization
 n <- 3
-Lambda_1 <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0.4,0,0.4))  # Changable coefficients
-Lambda_2 <- rbind(c(0.5,0.7,0),c(0.4,0.6,0),c(0,0,0.4))  # Changable coefficients
+Lambda <- rbind(c(0.5,0.9,0),c(0,0.6,0),c(0,0.9,0.7))  # Changable coefficients
 
 omega <- 1
 
 # Calculate Sigma
-vec_Sigma_1 <- solve(diag(n**2)-(Lambda_1 %x% Lambda_1)) %*% vec(omega * diag(n))
-Sigma_1 <- matrix(vec_Sigma_1, nrow = n)
-vec_Sigma_2 <- solve(diag(n**2)-(Lambda_2 %x% Lambda_2)) %*% vec(omega * diag(n))
-Sigma_2 <- matrix(vec_Sigma_2, nrow = n)
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+inv_Sigma <- solve(Sigma)
 
-# Calculate J
-Sig_Lam_1 <- Sigma_1 %*% Lambda_1
-B_1 <- rbind(c(Sig_Lam_1[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[1,]),c(Sig_Lam_1[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[2,]),c(Sig_Lam_1[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_1[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_1[3,])) + Sig_Lam_1 %x% diag(n)
-B_1 <- rbind(B_1, c(1,0,0,0,1,0,0,0,1))
-J_1 <- B_1 %*% solve(diag(n**2)-(Lambda_1 %x% Lambda_1))
-J_G_1 <- J_1[-which(t(Lambda_1) == 0),]
+# Lambda_prime
+Lambda_prime <- chol(Sigma)
 
-Sig_Lam_2 <- Sigma_2 %*% Lambda_2
-B_2 <- rbind(c(Sig_Lam_2[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[1,]),c(Sig_Lam_2[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[2,]),c(Sig_Lam_2[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_2[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_2[3,])) + Sig_Lam_2 %x% diag(n)
-B_2 <- rbind(B_2, c(1,0,0,0,1,0,0,0,1))
-J_2 <- B_2 %*% solve(diag(n**2)-(Lambda_2 %x% Lambda_2))
-J_G_2 <- J_2[-which(t(Lambda_2) == 0),]
+# Calculate J_prime
+Sig_Lam_prime <- Sigma %*% Lambda_prime
+B <- rbind(c(Sig_Lam_prime[1,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_prime[1,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_prime[1,]),c(Sig_Lam_prime[2,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_prime[2,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_prime[2,]),c(Sig_Lam_prime[3,],0,0,0,0,0,0),c(0,0,0,Sig_Lam_prime[3,],0,0,0),c(0,0,0,0,0,0,Sig_Lam_prime[3,])) + Sig_Lam_prime %x% diag(n)
+B <- rbind(B, c(1,0,0,0,1,0,0,0,1))
+B_prime <- B[-which(t(Lambda_prime) == 0),]
+J_prime <- B %*% solve(diag(n**2)-(Lambda_prime %x% Lambda_prime))
+J_G_prime <- J_prime[-which(t(Lambda_prime) == 0),]
 
-J_G_1
-J_G_2
+Sigma
 
-rankMatrix(J_G_1)
-rankMatrix(J_G_2)
+inv_Sigma
+
+J_G_prime
+
+rankMatrix(J_G_prime)
 ```
+
 
 ## 4 nodes
 
@@ -186,7 +255,8 @@ rankMatrix(J_G_2)
 ```{r}
 # Initialization
 n <- 4
-Lambda <- rbind(c(0.5,0.6,0.6,0.8),c(0.9,0.6,0.9,0.6),c(0,0.5,0.4,0),c(0,0,0.4,0.3))  # Changable coefficients
+# Lambda <- rbind(c(0.3,0,0.4,0),c(0,0.5,0.8,0),c(0,0,0.6,0),c(0,0,0.4,0.9))  # Changable coefficients
+Lambda <- Lambda_prime
 
 omega <- 1
 
@@ -213,13 +283,7 @@ J_G
 
 rankMatrix(J_G)
 ```
-```{r}
-for (i in 1:16){
-  for (j in (i+1):16){
-    print(rankMatrix(J_G[,-c(i,j)]))
-  }
-}
-```
+
 
 # Upper triangular
 
@@ -261,8 +325,8 @@ library("igraph")
 
 ```{r}
 n <- 6
-g <- make_graph(edges = c(2, 1, 3, 1, 1, 4, 6, 4, 4, 5), n = n, directed = TRUE)
-# g <- make_graph(edges = c(2, 1, 3, 1, 6, 4, 4, 5, 5, 6), n = n, directed = TRUE)
+# g <- make_graph(edges = c(2, 1, 3, 1, 1, 4, 6, 4, 4, 5), n = n, directed = TRUE)
+g <- make_graph(edges = c(2, 1, 3, 1, 6, 4, 4, 5, 5, 6), n = n, directed = TRUE)
 
 lbs <- rep(0L,n) # Labels for the nodes, global variable
 maxc <- matrix(0,n,n) # Maximal classes, global variable
@@ -353,8 +417,8 @@ find_graph <- function(maxc) {
 
 ```{r}
 edgs <- list() # List of edges recovered
-# maxc <- list(c(1,2,4,5),c(1,3,4,5),c(4,5,6))
-maxc <- list(c(2,1,4,5,6),c(3,1,4,5,6))
+maxc <- list(c(1,2,4,5),c(1,3,4,5),c(4,5,6))
+# maxc <- list(c(2,1,4,5,6),c(3,1,4,5,6))
 find_graph(maxc)
 ```
 
