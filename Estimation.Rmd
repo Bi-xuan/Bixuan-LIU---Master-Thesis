@@ -2,6 +2,11 @@
 library('fBasics')
 library('Matrix')
 library("matrixcalc")
+
+library("ggplot2")
+theme_set(theme_bw())
+
+library("scatterplot3d") # load
 ```
 
 
@@ -41,21 +46,22 @@ omega <- 1
 vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
 
-l_1 <- seq(-1,1,0.1)
-l_2 <- seq(-1,1,0.1)
+l_1 <- seq(-1,1,0.01)
+l_2 <- seq(-1,1,0.01)
 obj <- c()
 for (i in 1:length(l_1)) {
   l <- rbind(c(0.5,0,l_1[i]),c(0,0.6,l_2[i]),c(0,0,0.5))
   obj[i] <- norm(Sigma - t(l) %*% Sigma %*% l - omega*diag(n), type="2") ** 2
 }
-scatter3D(l_1,l_2,obj)
+scatterplot3d(l_1,l_2,obj)
 ```
 
+## Lasso and gradient descent
 
 n = 3
 ```{r}
 n <- 3
-Lambda <- rbind(c(runif(1,0.1,1),0,runif(1,0.1,1)),c(0,runif(2,0.1,1)),c(0,0,runif(1,0.1,1)))
+Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(2,-1,1)),c(0,0,runif(1,-1,1)))
 
 omega <- 1
 
@@ -63,49 +69,36 @@ vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n)
 Sigma <- matrix(vec_Sigma, nrow = n)
 
 # Objective function
-obj_fn <- function(par,Sigma,omega) {
+obj_fn <- function(par,Sigma,omega,gam) {
   n <- 3
   Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
-  non_zero_par <- c(Lambda[-c(1,5,9)])
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(par[10] * (length(which(abs(non_zero_par) != 0)) - 2))
+  Lambda_ndiag <- Lambda
+  diag(Lambda_ndiag) <- 0
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="F") ** 2 + gam * norm(Lambda_ndiag,type="1")
   return (obj)
 }
 
-res <- optim(par=c(runif(9,0,1),10), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega)
-while (res$convergence) {
-    res <- optim(par=c(runif(9,0,1),10), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega)
-}
-res
-length(which(abs(res$par[-c(1,5,9)]) != 0))
-t(matrix(res$par[-10], nrow = 3))
-```
+gam <- seq(0,9.9,0.1)
+res_value <- rep(0L,100)
+num_edge <- rep(0L,100)
 
-```{r}
-n <- 3
-Lambda <- rbind(c(runif(1,0.1,1),0,runif(1,0.1,1)),c(0,runif(2,0.1,1)),c(0,0,runif(1,0.1,1)))
-
-omega <- 1
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-
-# Objective function
-obj_fn <- function(par,Sigma, omega, gamma) {
-  n <- 3
-  Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
-  non_zero_par <- c(Lambda[-c(1,5,9)])
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(gamma * (length(which(abs(non_zero_par) != 0)) - 2))
-  return (obj)
+for (i in 1:100) {
+  res <- optim(par=runif(9,-1,1), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega,gam=gam[i])
+  while (res$convergence) {
+      res <- optim(par=runif(9,-1,1), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega,gam=gam[i])
+  }
+  res_value[i] <- res$value
+  num_edge[i] <- length(which(abs(res$par[-c(1,5,9)]) > 1e-03))
 }
 
-gamma_par <- 100
-res <- optim(par=runif(9,0,1), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-while (res$convergence) {
-    res <- optim(par=runif(9,0,1), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-}
-res
-length(which(abs(res$par[-c(1,5,9)]) != 0))
-t(matrix(res$par, nrow = 3))
+df <- data.frame(gam,res_value,num_edge)
+
+plt_value <- ggplot(df,aes(gam,res_value))
+plt_num_ed <- ggplot(df,aes(gam,num_edge))
+
+plt_value + geom_point()
+plt_num_ed + geom_point()
+# plt_value + geom_smooth()
 ```
 
 
