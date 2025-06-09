@@ -41,23 +41,65 @@ while(1) {
  
 ### Algo2[Wang2018]
 
+n=3
 ```{r}
 n <- 3
-Lambda <- rbind(c(0.5,0,0.9),c(0,0.6,0.7),c(0,0,0.5))  # Changable coefficients
-# Lambda <- rbind(c(0.5,0,0.9),c(0,0.6,0),c(0,0,0.5))
+# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
 
-omega <- 1
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+
+omega <- 0.01
 
 vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
 ```
 
+n=4
+```{r}
+n <- 4
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0,0),c(0,runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1),runif(1,-1,1)),c(0,0,0,runif(1,-1,1)))
+Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1),runif(1,-1,1)),c(0,0,0,runif(1,-1,1)))
+
+omega <- 0.01
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+```
+
+Algorithm
 ```{r}
 # Initialization
-beta <- 1
+Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+alpha <- list(matrix(0,n,n))
+fnorm <- list(1)
+beta <- 0.5
 flag <- 0
+  
+for (i in 1:1000) {
+  Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
+  Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
+  alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+  fnorm[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+  
+  if(fnorm[[i+1]] < 1e-6 & frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) < 1e-6) {
+    print("Succeed!")
+    flag <- 1
+    break
+  }
+}
 
-while (!flag) {
+
+
+```
+
+```{r}
+  while (!flag) {
   Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
   Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
   alpha <- list(matrix(0,n,n))
@@ -76,30 +118,73 @@ while (!flag) {
     }
   }
 }
+```
 
 
+## Algo3: ISTA / FISTA
 
+n=3
+```{r}
+n <- 3
+# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
+Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
 ```
 
 ```{r}
-Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
-  Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
-  alpha <- list(matrix(0,n,n))
-  fnorm <- list(1)
-  
-  for (i in 1:1000) {
-    Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
-    Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
-    alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
-    fnorm[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
-  
-    if(fnorm[[i+1]] < 1e-6) {
-      print("Succeed!")
-      flag <- 1
-      break
+# Initialization: use the output of ALgo2
+eta <- 0.01 # Stepsize
+gma <- 1 # l1 penalty
+fnorm <- list(1)
+
+Lambda <-list(matrix(runif(n**2,-1,1),ncol=n))
+
+for (i in 1:1000) {
+  grad <- -4 * (Sigma %*% Lambda[[i]]) %*% (2*(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]]) - diag(diag(t(Lambda[[i]])%*%Sigma%*%Lambda[[i]]),n,n))
+  Lambda[[i+1]] <- matrix(0,n,n)
+  for (j in 1:n) {
+    for(k in 1:n) {
+      grad_step <- Lambda[[i]][j,k] - eta * grad[j,k]
+      if (j == k) {
+        Lambda[[i+1]][j,k] <- grad_step
+      }else if(grad_step < - eta * gma) {
+        Lambda[[i+1]][j,k] <- grad_step + eta*gma
+      }else if (grad_step > eta * gma) {
+        Lambda[[i+1]][j,k] <- grad_step - eta*gma
+      }else {
+        Lambda[[i+1]][j,k] <- 0
+      }
     }
   }
+  fnorm[[i+1]] <- frobenius.norm(Lambda[[i+1]] - Lambda[[i]])
+    
+  if(fnorm[[i+1]] < 1e-6) {
+    print("Succeed!")
+    break
+  }
+}
 ```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -312,6 +397,9 @@ plt_value + geom_point()
 plt_num_ed + geom_point()
 # plt_value + geom_smooth()
 ```
+
+
+
 
 
 
