@@ -299,59 +299,80 @@ ft_ADMM <- function(Sigma, beta) {
 }
 ```
 
-ISTA
+ISTA with backtracking
 ```{r}
-ft_ISTA <- function(Lambda_0,Sigma,gma,eta) {
-  # Initialization
-  obj <- list(1)
-  obj_gap <- list(1)
-
-  Lambda <-list(Lambda_0)
-
-  for (i in 1:1000) {
-     grad <- -4 * (Sigma %*% Lambda[[i]]) %*% (2*(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) -  diag(diag(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega*diag(n))))
-    Lambda[[i+1]] <- matrix(0,n,n)
+# ISTA update with stepsize eta
+ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
+     grad <- -4 * (Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n))))
+    Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
-        grad_step <- Lambda[[i]][j,k] - eta * grad[j,k]
+        grad_step <- Lambda_0[j,k] - eta * grad[j,k]
       if (j == k) {
-        Lambda[[i+1]][j,k] <- grad_step
+        Lambda_updt[j,k] <- grad_step
         }else if(grad_step < -eta * gma) {
-          Lambda[[i+1]][j,k] <- grad_step + eta*gma
+          Lambda_updt[j,k] <- grad_step + eta*gma
         }else if (grad_step > eta * gma) {
-          Lambda[[i+1]][j,k] <- grad_step - eta*gma
+          Lambda_updt[j,k] <- grad_step - eta*gma
         }else {
-          Lambda[[i+1]][j,k] <- 0
+          Lambda_updt[j,k] <- 0
         }
       }
     }
-    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + gma * sum(abs(c(Lambda[[i]]) - c(diag(diag(Lambda[[i]])))))
+    return (list(Lambda_updt,grad))
+}
+
+ft_ISTA_bktr <- function(Lambda_0,Sigma,gma,eta_0) {
+  # eta_0 is the initial stepsize (before backtracking)
+  eta <- list(eta_0)
+  eta_inc <- 1.1 # The inverse of increment of stepsize, a constant > 1
+  
+  Lambda <- list(Lambda_0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda_0) - c(diag(diag(Lambda_0))))))
+  obj_gap <- list(obj[[1]])
+  
+  for (i in 1:1000) {
+    for (l in 0:1000) {
+      eta_t <- eta[[i]] / (eta_inc ** l)
+      ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta_t)
+      Lambda_updt <- ISTA_updt[[1]]
+      grad_updt <- ISTA_updt[[2]]
+      if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) **2 > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2 + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+        eta[[i+1]] <- eta_t
+        break
+      }
+    }
+    ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta[[i+1]])
+    Lambda[[i+1]] <- ISTA_updt[[1]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
     obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
     
     if(obj_gap[[i+1]] < 1e-6) {
-      # print("ISTA Converged.")
       return(list(Lambda[[i+1]],obj[[i+1]]))
     }
   }
-  print("ISTA doesn't converge.")
+  print("ISTA did not converge within 1000 iterations.")
   return(list(Lambda[[i+1]],obj[[i+1]]))
 }
 ```
+
+
+
 
 Algo to construct a chain of \gamma
 
 n=3
 ```{r}
 n <- 3
-# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
 
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 
 omega <- 1
 
@@ -364,25 +385,26 @@ beta <- 0.5
 res_ADMM <- ft_ADMM(Sigma, beta)
 obj <- list(res_ADMM[[2]])
 gma <- list(0)
-eta <- 0.01
+eta <- 10
 
 Lambda <- list(res_ADMM[[1]])
 
 for (i in 1:100) {
   Lambda[[i+1]] <- Lambda[[i]]
-  t_gma <- gma[[i]] - 0.0005
+  t_gma <- gma[[i]] - 0.01
   while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
-    t_gma <- t_gma + 0.0005
-    res_ISTA <- ft_ISTA(Lambda[[i+1]],Sigma,t_gma,eta)
-    Lambda[[i+1]] <- res_ISTA[[1]]
+    t_gma <- t_gma + 0.01
+    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i+1]],Sigma,t_gma,eta)
+    Lambda[[i+1]] <- res_ISTA_bktr[[1]]
   }
-  obj[[i+1]] <- res_ISTA[[2]]
+  obj[[i+1]] <- res_ISTA_bktr[[2]]
   gma[[i+1]] <- t_gma
   if(nnzero(Lambda[[i+1]]) == n) {
     print("Algorithm succeeds!")
     break
   }
 }
+plot(gma,obj)
 ```
 
 
