@@ -1,3 +1,5 @@
+# Library
+
 ```{r}
 library('fBasics')
 library('Matrix')
@@ -9,9 +11,9 @@ theme_set(theme_bw())
 library("scatterplot3d") # load
 ```
 
-## Algorithm: Splitting
+# Algorithm: Splitting
 
-### Algo1
+## Algo1
 
 ```{r}
 n <- 3
@@ -38,96 +40,15 @@ while(1) {
 }
 
 ```
- 
-### Algo2[Wang2018]
+
+# ISTA / FISTA
 
 n=3
+
 ```{r}
 n <- 3
 # Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
-Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
-
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
-
-omega <- 0.01
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-```
-
-n=4
-```{r}
-n <- 4
-# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0,0),c(0,runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1),runif(1,-1,1)),c(0,0,0,runif(1,-1,1)))
-Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1),runif(1,-1,1)),c(0,0,0,runif(1,-1,1)))
-
-omega <- 0.01
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-```
-
-Algorithm
-```{r}
-# Initialization
-Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
-Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
-alpha <- list(matrix(0,n,n))
-fnorm <- list(1)
-beta <- 0.5
-flag <- 0
-  
-for (i in 1:1000) {
-  Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
-  Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
-  alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
-  fnorm[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
-  
-  if(fnorm[[i+1]] < 1e-6 & frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) < 1e-6) {
-    print("Succeed!")
-    flag <- 1
-    break
-  }
-}
-
-
-
-```
-
-```{r}
-  while (!flag) {
-  Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
-  Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
-  alpha <- list(matrix(0,n,n))
-  fnorm <- list(1)
-  
-  for (i in 1:1000) {
-    Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
-    Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
-    alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
-    fnorm[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
-  
-    if(fnorm[[i+1]] < 1e-6) {
-      print("Succeed!")
-      flag <- 1
-      break
-    }
-  }
-}
-```
-
-
-## Algo3: ISTA / FISTA
-
-n=3
-```{r}
-n <- 3
-# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
@@ -138,23 +59,26 @@ Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)
 
 omega <- 1
 
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+vec_Sigma <- solve(diag(n**2)-t(Lambda_0) %x% t(Lambda_0)) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
 ```
 
 ```{r}
 # Initialization
 eta <- 0.001 # Stepsize
-gma <- 0.1 # l1 penalty
+gma <- 2.3 # l1 penalty
 obj <- list(1)
 obj_gap <- list(1)
 
 # Lambda <-list(matrix(runif(n**2,-1,1),ncol=n))
-Lambda <-list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+# Lambda <-list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
 # Lambda <-list(matrix(0,n,n))
 
+# grad <- -4 * (Sigma %*% Lambda[[i]]) %*% (2*(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) -  diag(diag(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega*diag(n))))
+
 for (i in 1:1000) {
-  grad <- -4 * (Sigma %*% Lambda[[i]]) %*% (2*(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) -  diag(diag(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega*diag(n))))
+  grad <- -2 * ((Sigma %*% Lambda[[i]]) %*% (Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n))
   Lambda[[i+1]] <- matrix(0,n,n)
   for (j in 1:n) {
     for(k in 1:n) {
@@ -170,7 +94,7 @@ for (i in 1:1000) {
       }
     }
   }
-  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[i]]) - c(diag(diag(Lambda[[i]])))))
+  obj[[i+1]] <- frobenius.norm(Sigma - Lambda[[i]]%*%Sigma%*%t(Lambda[[i]]) - omega * diag(n)) + gma * sum(abs(c(Lambda[[i]]) - c(diag(diag(Lambda[[i]])))))
   obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
     
   if(obj_gap[[i+1]] < 1e-6) {
@@ -183,10 +107,11 @@ Lambda[[i]]
 ```
 
 ISTA with backtracking
+
 ```{r}
 # ISTA update with stepsize eta
 ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
-     grad <- -4 * (Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n))))
+     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -206,31 +131,141 @@ ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
 }
 ```
 
-
-
 ```{r}
 # Initialization
 eta <- list(10) # Stepsize
-eta_inc <- 1.01 # The increment of stepsize, a constant > 1
-gma <- 0.01 # l1 penalty
+eta_inc <- 1.5 # The increment of stepsize, a constant > 1
+gma <- 3.5 # l1 penalty
 obj <- list(1)
 obj_gap <- list(1)
 
-Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
-obj[[1]] <- frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[1]]) - c(diag(diag(Lambda[[1]])))))
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+obj[[1]] <- frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) + gma * sum(abs(c(Lambda[[1]]) - c(diag(diag(Lambda[[1]])))))
 
-for (i in 1:1000) {
+for (i in 1:10000) {
   for (l in 0:1000) {
     eta_t <- eta[[i]] / (eta_inc ** l)
     ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta_t)
     Lambda_updt <- ISTA_updt[[1]]
     grad_updt <- ISTA_updt[[2]]
-    if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) **2 > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2 + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+    if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
       eta[[i+1]] <- eta_t
       break
     }
   }
   ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta[[i+1]])
+  Lambda[[i+1]] <- ISTA_updt[[1]]
+  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
+  obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+  if(obj_gap[[i+1]] < 1e-6) {
+    print("Converged.")
+    break
+  }
+}
+
+Lambda[[i+1]]
+```
+
+## Test: gradient descent
+
+```{r}
+eta <- 0.001 # Stepsize
+fnorm <- list(1)
+obj <- list(1)
+
+Lambda <-list(matrix(runif(n**2,-1,1),ncol=n))
+
+for (i in 1:1000) {
+  grad <- -2 * ((Sigma %*% Lambda[[i]]) %*% (Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n))
+  Lambda [[i+1]] <- Lambda[[i]] - eta * grad
+  
+  fnorm[[i+1]] <- frobenius.norm(Lambda[[i+1]] - Lambda[[i]])
+  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n))
+  
+  if(fnorm[[i+1]] < 1e-6) {
+    print("Succeed!")
+    break
+  }
+}
+```
+
+## Witness approach
+
+Verify if the lasso solution is the optim.
+
+n=3
+
+```{r}
+n <- 3
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+```
+
+ISTA with backtracking and constraints on the support
+
+```{r}
+# ISTA update with stepsize eta
+ft_ISTA_update <- function(Lambda_0,Lambda_k,Sigma,gma,eta) {
+     grad <- -4 * ((Sigma %*% Lambda_k) %*% (Sigma - t(Lambda_k)%*%Sigma%*%Lambda_k - omega * diag(n)))
+    Lambda_updt <- matrix(0,n,n)
+    for (j in 1:n) {
+      for(k in 1:n) {
+        grad_step <- Lambda_k[j,k] - eta * grad[j,k]
+      if (j == k) {
+        Lambda_updt[j,k] <- grad_step
+      }else if(Lambda_0[j,k] == 0){
+          Lambda_updt[j,k] <- 0
+        }else if(grad_step < -eta * gma) {
+          Lambda_updt[j,k] <- grad_step + eta*gma
+        }else if (grad_step > eta * gma) {
+          Lambda_updt[j,k] <- grad_step - eta*gma
+        }else {
+          Lambda_updt[j,k] <- 0
+        }
+      }
+    }
+    return (list(Lambda_updt,grad))
+}
+```
+
+```{r}
+# Initialization
+eta <- list(10) # Stepsize
+eta_inc <- 1.1 # The increment of stepsize, a constant > 1
+gma <- 0.5 # l1 penalty
+obj <- list(1)
+obj_gap <- list(1)
+
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+obj[[1]] <- frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[1]]) - c(diag(diag(Lambda[[1]])))))
+
+for (i in 1:10000) {
+  for (l in 0:1000) {
+    eta_t <- eta[[i]] / (eta_inc ** l)
+    ISTA_updt <- ft_ISTA_update(Lambda_0,Lambda[[i]],Sigma,gma,eta_t)
+    Lambda_updt <- ISTA_updt[[1]]
+    grad_updt <- ISTA_updt[[2]]
+    if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) ** 2 > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2 + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+      eta[[i+1]] <- eta_t
+      break
+    }
+  }
+  ISTA_updt <- ft_ISTA_update(Lambda_0,Lambda[[i]],Sigma,gma,eta[[i+1]])
   Lambda[[i+1]] <- ISTA_updt[[1]]
   obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
   obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
@@ -246,64 +281,45 @@ Lambda[[i+1]]
 
 
 
-## Test: gradient descent
-
-```{r}
-eta <- 0.01 # Stepsize
-fnorm <- list(1)
-obj <- list(1)
-
-Lambda <-list(matrix(runif(n**2,-1,1),ncol=n))
-
-for (i in 1:1000) {
-  grad <- -4 * (Sigma %*% Lambda[[i]]) %*% (2*(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) -  diag(diag(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega*diag(n))))
-  Lambda [[i+1]] <- Lambda[[i]] - eta * grad
-  
-  fnorm[[i+1]] <- frobenius.norm(Lambda[[i+1]] - Lambda[[i]])
-  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2
-  
-  if(fnorm[[i+1]] < 1e-6) {
-    print("Succeed!")
-    break
-  }
-}
-```
-
-
-## Algo: ADMM + ISTA -> construct a chain of \gamma
+## Algo: to construct a chain of \gamma
 
 ADMM
+
 ```{r}
-ft_ADMM <- function(Sigma, beta) {
+ft_ADMM <- function(Sigma,omega,beta=0.5) {
   # Initialization
   Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
   Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
   alpha <- list(matrix(0,n,n))
   dis_1_2 <- list(1)
   obj <- list(1)
-  beta <- 0.5
   
   for (i in 1:1000) {
     Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
     Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
     alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
     dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
-    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n))
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
   
   
-    if(dis_1_2[[i+1]] < 1e-6 & frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) < 1e-6) {
-      print("ADMM succeeds!")
+    if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+      # print("ADMM succeeds!")
       return(list(Lambda_1[[i+1]],obj[[i+1]])) # Return the converged \Lambda and the objective function value
     }
   }
+  print("ADMM did not converge after 1000 iterations.")
+  return(list(Lambda_1[[i+1]],obj[[i+1]]))
 }
 ```
 
 ISTA with backtracking
+
 ```{r}
+# grad <- -4 * t((Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n)))))
+
 # ISTA update with stepsize eta
-ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
-     grad <- -4 * (Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n))))
+ft_ISTA_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+    grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -322,53 +338,50 @@ ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
     return (list(Lambda_updt,grad))
 }
 
-ft_ISTA_bktr <- function(Lambda_0,Sigma,gma,eta_0) {
+ft_ISTA_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
   # eta_0 is the initial stepsize (before backtracking)
   eta <- list(eta_0)
-  eta_inc <- 1.1 # The inverse of increment of stepsize, a constant > 1
   
   Lambda <- list(Lambda_0)
-  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda_0) - c(diag(diag(Lambda_0))))))
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) + gma * sum(abs(c(Lambda_0) - c(diag(diag(Lambda_0))))))
   obj_gap <- list(obj[[1]])
   
-  for (i in 1:1000) {
+  for (i in 1:10000) {
     for (l in 0:1000) {
       eta_t <- eta[[i]] / (eta_inc ** l)
-      ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta_t)
+      ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,omega,gma,eta_t)
       Lambda_updt <- ISTA_updt[[1]]
       grad_updt <- ISTA_updt[[2]]
-      if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) **2 > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) ** 2 + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+      if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
         eta[[i+1]] <- eta_t
         break
       }
     }
-    ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,gma,eta[[i+1]])
+    ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
     Lambda[[i+1]] <- ISTA_updt[[1]]
-    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) ** 2 + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
     obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
     
     if(obj_gap[[i+1]] < 1e-6) {
       return(list(Lambda[[i+1]],obj[[i+1]]))
     }
   }
-  print("ISTA did not converge within 1000 iterations.")
+  print("ISTA did not converge within 10000 iterations. Objective gap:")
+  print(obj_gap[[i+1]])
   return(list(Lambda[[i+1]],obj[[i+1]]))
 }
 ```
 
 
-
-
-Algo to construct a chain of \gamma
-
 n=3
+
 ```{r}
 n <- 3
-# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
-Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
-# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
 
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
@@ -382,29 +395,749 @@ Sigma <- matrix(vec_Sigma, nrow = n)
 
 ```{r}
 beta <- 0.5
-res_ADMM <- ft_ADMM(Sigma, beta)
-obj <- list(res_ADMM[[2]])
-gma <- list(0)
-eta <- 10
+res_ADMM <- ft_ADMM(Sigma,omega, beta)
+```
 
-Lambda <- list(res_ADMM[[1]])
+```{r}
+# Lambda <- list(res_ADMM[[1]])
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+
+eta <- 1
+eta_inc <- 1.05
+gma <- list(0)
+res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+Lambda[[1]] <- res_ISTA_bktr[[1]]
+obj <- list(res_ISTA_bktr[[2]])
+err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
 
 for (i in 1:100) {
   Lambda[[i+1]] <- Lambda[[i]]
-  t_gma <- gma[[i]] - 0.01
+  t_gma <- gma[[i]]
   while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
     t_gma <- t_gma + 0.01
-    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i+1]],Sigma,t_gma,eta)
+    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
     Lambda[[i+1]] <- res_ISTA_bktr[[1]]
   }
   obj[[i+1]] <- res_ISTA_bktr[[2]]
   gma[[i+1]] <- t_gma
+  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
   if(nnzero(Lambda[[i+1]]) == n) {
     print("Algorithm succeeds!")
     break
   }
 }
-plot(gma,obj)
+
+Lambda
+```
+
+Proportion of the case where we find the true graph
+
+```{r}
+num_exp <- 10
+res_pos <- 0
+res_pos_t <- 0
+
+eta <- 1
+eta_inc <- 1.05
+
+for (j in 1:num_exp) {
+  Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+  gma <- list(0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)))
+  err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+  err_edges_t <- list(sum((Lambda_0 != 0) != (t(Lambda[[1]]) != 0)))
+
+  for (i in 1:100) {
+    Lambda[[i+1]] <- Lambda[[i]]
+    t_gma <- gma[[i]]
+    while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+      t_gma <- t_gma + 0.01
+      res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+      Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+    }
+    obj[[i+1]] <- res_ISTA_bktr[[2]]
+    gma[[i+1]] <- t_gma
+    err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+    err_edges_t[[i+1]] <- sum((Lambda_0 != 0) != (t(Lambda[[i+1]]) != 0))
+    if(nnzero(Lambda[[i+1]]) == n) {
+      break
+    }
+  }
+  
+  if (0 %in% err_edges) {
+    res_pos <- res_pos+1
+  }else if (0 %in% err_edges_t) {
+    res_pos_t <- res_pos_t + 1
+  }
+}
+
+print(res_pos / num_exp)
+print(res_pos_t / num_exp)
+```
+
+## Algo to do a grid of \gamma
+
+```{r}
+Lambda <- list(res_ADMM[[1]])
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+
+eta <- 1
+eta_inc <- 1.5
+gma <- seq(0,10,0.01)
+obj <- list(frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) ** 2)
+err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+
+for (i in 1:length(gma)) {
+  res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
+  Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+  obj[[i+1]] <- res_ISTA_bktr[[2]]
+  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+  
+  if(nnzero(Lambda[[i+1]]) == n) {
+    print(i)
+    print(0 %in% err_edges)
+    break
+  }
+}
+```
+
+```{r}
+df <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("NEIB",length(obj)))
+
+df_plt <- df[-1,]
+```
+
+```{r}
+# df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("DIAG",length(obj)))
+# df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("RAND",length(obj)))
+df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("ADMM",length(obj)))
+
+df_t_plt <- df_t[-1,]
+df <- rbind(df, df_t)
+df_plt <- rbind(df_plt,df_t_plt)
+```
+
+```{r}
+# Obj
+plt_1 <- ggplot(df_plt,aes(x=gma,y=obj,color=init)) + 
+  geom_line() + 
+  labs(x="Gamma",y="Objective value")
+
+plt_2 <- ggplot(df_plt,aes(x=gma,y=obj,color=init)) + 
+  geom_point() + 
+  labs(x="Gamma",y="Objective value")
+
+# Wrong edges
+plt_3 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
+  geom_line() + 
+  labs(x="Gamma",y="Number of wrong edges")
+
+plt_4 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
+  geom_point() + 
+  labs(x="Gamma",y="Number of wrong edges")
+
+plt_1
+plt_2
+plt_3
+plt_4
+```
+
+```{r}
+df$lmd[df$init == "ADMM"]
+```
+
+# IHT
+
+## Algo
+n=3
+
+```{r}
+n <- 3
+# Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-t(Lambda_0) %x% t(Lambda_0)) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+```
+
+IHT with backtracking
+
+```{r}
+# IHT update with stepsize eta
+ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    Lambda_updt <- matrix(0,n,n)
+    for (j in 1:n) {
+      for(k in 1:n) {
+        grad_step <- Lambda_0[j,k] - eta * grad[j,k]
+      if (j == k) {
+        Lambda_updt[j,k] <- grad_step
+        }else if(grad_step < -sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else if (grad_step > sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else {
+          Lambda_updt[j,k] <- 0
+        }
+      }
+    }
+    return (list(Lambda_updt,grad))
+}
+```
+
+```{r}
+# Initialization
+eta <- list(10) # Stepsize
+eta_inc <- 1.5 # The increment of stepsize, a constant > 1
+gma <- 1# l1 penalty
+obj <- list(1)
+obj_gap <- list(1)
+
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+Lambda <-list(matrix(runif(n**2,-1,1),ncol=n))
+# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+obj[[1]] <- frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda[[1]]))>0)-n)
+
+for (i in 1:10000) {
+  for (l in 0:1000) {
+    eta_t <- eta[[i]] / (eta_inc ** l)
+    IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta_t)
+    Lambda_updt <- IHT_updt[[1]]
+    grad_updt <- IHT_updt[[2]]
+    if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+      eta[[i+1]] <- eta_t
+      break
+    }
+  }
+  IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
+  Lambda[[i+1]] <- IHT_updt[[1]]
+  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda[[i+1]]))>0)-n)
+  obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+  if(obj_gap[[i+1]] < 1e-6) {
+    print("Converged.")
+    break
+  }
+}
+
+Lambda[[i+1]]
+```
+## Construct a chain of $\gamma$
+
+ADMM
+```{r}
+ft_ADMM <- function(Sigma,omega,beta=0.5) {
+  # Initialization
+  Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  alpha <- list(matrix(0,n,n))
+  dis_1_2 <- list(1)
+  obj <- list(1)
+  
+  for (i in 1:1000) {
+    Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
+    Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
+    alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
+  
+  
+    if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+      # print("ADMM succeeds!")
+      return(list(Lambda_1[[i+1]],obj[[i+1]])) # Return the converged \Lambda and the objective function value
+    }
+  }
+  print("ADMM did not converge after 1000 iterations.")
+  return(list(Lambda_1[[i+1]],obj[[i+1]]))
+}
+```
+
+IHT with backtracking
+
+```{r}
+# grad <- -4 * t((Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n)))))
+
+# ISTA update with stepsize eta
+ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    Lambda_updt <- matrix(0,n,n)
+    for (j in 1:n) {
+      for(k in 1:n) {
+        grad_step <- Lambda_0[j,k] - eta * grad[j,k]
+      if (j == k) {
+        Lambda_updt[j,k] <- grad_step
+        }else if(grad_step < -sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else if (grad_step > sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else {
+          Lambda_updt[j,k] <- 0
+        }
+      }
+    }
+    return (list(Lambda_updt,grad))
+}
+
+ft_IHT_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
+  # eta_0 is the initial stepsize (before backtracking)
+  eta <- list(eta_0)
+  
+  Lambda <- list(Lambda_0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) + gma * (sum(abs(c(Lambda_0)) >0)-n))
+  obj_gap <- list(obj[[1]])
+  
+  for (i in 1:10000) {
+    for (l in 0:1000) {
+      eta_t <- eta[[i]] / (eta_inc ** l)
+      IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta_t)
+      Lambda_updt <- IHT_updt[[1]]
+      grad_updt <- IHT_updt[[2]]
+      if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+        eta[[i+1]] <- eta_t
+        break
+      }
+    }
+    IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
+    Lambda[[i+1]] <- IHT_updt[[1]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda[[i+1]]) )>0)-n)
+    obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+    if(obj_gap[[i+1]] < 1e-6) {
+      return(list(Lambda[[i+1]],obj[[i+1]]))
+    }
+  }
+  print("IHT did not converge within 10000 iterations. Objective gap:")
+  print(obj_gap[[i+1]])
+  return(list(Lambda[[i+1]],obj[[i+1]]))
+}
+```
+
+n=3
+
+```{r}
+n <- 3
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_0
+Sigma
+```
+
+```{r}
+beta <- 0.5
+res_ADMM <- ft_ADMM(Sigma,omega, beta)
+```
+
+```{r}
+Lambda <- list(res_ADMM[[1]])
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+
+eta <- 1
+eta_inc <- 1.05
+gma <- list(0)
+res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+Lambda[[1]] <- res_IHT_bktr[[1]]
+obj <- list(res_IHT_bktr[[2]])
+err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+
+for (i in 1:100) {
+  Lambda[[i+1]] <- Lambda[[i]]
+  t_gma <- gma[[i]]
+  while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+    t_gma <- t_gma + 0.01
+    res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+    Lambda[[i+1]] <- res_IHT_bktr[[1]]
+  }
+  obj[[i+1]] <- res_IHT_bktr[[2]]
+  gma[[i+1]] <- t_gma
+  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+  if(nnzero(Lambda[[i+1]]) == n) {
+    print("Algorithm succeeds!")
+    break
+  }
+}
+
+gma
+Lambda
+obj
+```
+
+### Proportion of finding the true graph with random initialization
+
+```{r}
+num_exp <- 100
+res_pos <- 0
+
+eta <- 1
+eta_inc <- 1.05
+
+for (j in 1:num_exp) {
+  Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+  gma <- list(0)
+  res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+  Lambda[[1]] <- res_IHT_bktr[[1]]
+  obj <- list(res_IHT_bktr[[2]])
+  err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+  err_edges_t <- list(sum((Lambda_0 != 0) != (t(Lambda[[1]]) != 0)))
+
+  for (i in 1:100) {
+    Lambda[[i+1]] <- Lambda[[i]]
+    t_gma <- gma[[i]]
+    while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+      t_gma <- t_gma + 0.01
+      res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+      Lambda[[i+1]] <- res_IHT_bktr[[1]]
+    }
+    obj[[i+1]] <- res_IHT_bktr[[2]]
+    gma[[i+1]] <- t_gma
+    err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+    err_edges_t[[i+1]] <- sum((Lambda_0 != 0) != (t(Lambda[[i+1]]) != 0))
+    if(nnzero(Lambda[[i+1]]) == n) {
+      break
+    }
+  }
+  
+  if (0 %in% err_edges) {
+    res_pos <- res_pos+1
+  }
+}
+
+print(res_pos / num_exp)
+```
+
+
+
+## Grid of \gamma
+
+```{r}
+# Lambda <- list(res_ADMM[[1]])
+# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+# Lambda <- list(Lambda[[1]])
+# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+
+eta <- 1
+eta_inc <- 1.05
+gma <- seq(0,10,0.01)
+res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[1],eta,eta_inc)
+Lambda[[1]] <- res_IHT_bktr[[1]]
+obj <- list(res_IHT_bktr[[2]])
+err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+
+for (i in 1:length(gma)) {
+  res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
+  Lambda[[i+1]] <- res_IHT_bktr[[1]]
+  obj[[i+1]] <- res_IHT_bktr[[2]]
+  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+  
+  if(nnzero(Lambda[[i+1]]) == n) {
+    print(i)
+    print(0 %in% err_edges)
+    break
+  }
+}
+```
+
+```{r}
+df <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("Pos_1",length(obj)))
+```
+
+```{r}
+#df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("DIAG",length(obj)))
+#df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("RAND",length(obj)))
+df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("nPos_2",length(obj)))
+
+df <- rbind(df, df_t)
+```
+
+```{r}
+# Obj
+plt_1 <- ggplot(df,aes(x=gma,y=obj,color=init)) + 
+  geom_line() + 
+  labs(x="Gamma",y="Objective value")
+
+plt_2 <- ggplot(df,aes(x=gma,y=obj,color=init)) + 
+  geom_point() + 
+  labs(x="Gamma",y="Objective value")
+
+# Wrong edges
+plt_3 <- ggplot(df,aes(x=gma,y=err_edges,color=init)) + 
+  geom_line() + 
+  labs(x="Gamma",y="Number of wrong edges")
+
+plt_4 <- ggplot(df,aes(x=gma,y=err_edges,color=init)) + 
+  geom_point() + 
+  labs(x="Gamma",y="Number of wrong edges")
+
+plt_1
+plt_2
+plt_3
+plt_4
+```
+
+# Sol1: IHT+ADMM+Grid search
+
+ADMM with given support
+```{r}
+ADMM_supp <- function(Sigma,omega,Lambda_t,beta=0.5) {
+  for (j in 1:5) {
+    # Initialization
+    Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+    Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+    alpha <- list(matrix(0,n,n))
+    dis_1_2 <- list(1)
+    obj <- list(1)
+  
+    for (i in 1:1000) {
+      Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
+      Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
+      Lambda_1[[i+1]][Lambda_t == 0] <- 0
+      Lambda_2[[i+1]][Lambda_t == 0] <- 0
+      alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+      dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+      obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
+  
+  
+      if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+        return(TRUE) # Return the converged \Lambda and the objective function value
+      }
+    }
+  }
+  return(FALSE)
+}
+```
+
+
+IHT with backtracking
+```{r}
+# grad <- -4 * t((Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n)))))
+
+# IHT update with stepsize eta
+ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    Lambda_updt <- matrix(0,n,n)
+    for (j in 1:n) {
+      for(k in 1:n) {
+        grad_step <- Lambda_0[j,k] - eta * grad[j,k]
+      if (j == k) {
+        Lambda_updt[j,k] <- grad_step
+        }else if(grad_step < -sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else if (grad_step > sqrt(2*eta*gma)) {
+          Lambda_updt[j,k] <- grad_step
+        }else {
+          Lambda_updt[j,k] <- 0
+        }
+      }
+    }
+    return (list(Lambda_updt,grad))
+}
+
+ft_IHT_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
+  # eta_0 is the initial stepsize (before backtracking)
+  eta <- list(eta_0)
+  
+  Lambda <- list(Lambda_0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) + gma * (sum(abs(c(Lambda_0)) >0)-n))
+  obj_gap <- list(obj[[1]])
+  
+  for (i in 1:10000) {
+    for (l in 0:1000) {
+      eta_t <- eta[[i]] / (eta_inc ** l)
+      IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta_t)
+      Lambda_updt <- IHT_updt[[1]]
+      grad_updt <- IHT_updt[[2]]
+      if(frobenius.norm(Sigma - t(Lambda_updt)%*%Sigma%*%Lambda_updt - omega * diag(n)) > frobenius.norm(Sigma - t(Lambda[[i]])%*%Sigma%*%Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt-Lambda[[i]])**2) / (2*eta_t)){}else{
+        eta[[i+1]] <- eta_t
+        break
+      }
+    }
+    IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
+    Lambda[[i+1]] <- IHT_updt[[1]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda[[i+1]]) )>0)-n)
+    obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+    if(obj_gap[[i+1]] < 1e-6) {
+      return(list(Lambda[[i+1]],obj[[i+1]]))
+    }
+  }
+  print("IHT did not converge within 10000 iterations. Objective gap:")
+  print(obj_gap[[i+1]])
+  return(list(Lambda[[i+1]],obj[[i+1]]))
+}
+```
+
+Function of constructing a chain using IHT
+```{r}
+IHT_chain <- function(Lambda_0,Sigma,omega,eta,eta_inc) {
+  Lambda <- list(Lambda_0)
+  gma <- list(0)
+  res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+  Lambda[[1]] <- res_IHT_bktr[[1]]
+  # obj <- list(res_IHT_bktr[[2]])
+  
+  for (i in 1:100) {
+    Lambda[[i+1]] <- Lambda[[i]]
+    t_gma <- gma[[i]]
+    while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+      t_gma <- t_gma + 0.01
+      res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+      Lambda[[i+1]] <- res_IHT_bktr[[1]]
+    }
+    # obj[[i+1]] <- res_IHT_bktr[[2]]
+    gma[[i+1]] <- t_gma
+    if(nnzero(Lambda[[i+1]]) == n) {
+      return(Lambda)
+    }
+  }
+}
+```
+
+Initialization
+```{r}
+n <- 3
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_0
+Sigma
+```
+
+```{r}
+# n=5
+n <- 5
+Lambda_supp <- rbind(c(1,1,0,0,0),c(0,1,1,0,0),c(0,0,1,1,0),c(0,0,0,1,1),c(0,0,0,0,1))
+
+Lambda_0 <- matrix(0,n,n)
+Lambda_0[Lambda_supp != 0] <- runif(sum(abs(c(Lambda_supp) )>0),-1,1)
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_0
+Sigma
+``` 
+
+
+Construct a list of possible graphs with smallest number of edges
+```{r}
+start <- Sys.time() # Track the running time
+
+l <- 100 # Number of different initializations
+eta <- 1
+eta_inc <- 1.05
+
+Lambda_init <- replicate(l,matrix(runif(n**2,-1,1),n,n),simplify = FALSE)
+Lambda_cand <- list()
+
+for (i in 1:l) {
+  Lambda_t <- IHT_chain(Lambda_init[[i]],Sigma,omega,eta,eta_inc)
+  for (k in seq(length(Lambda_t)-1,1,-1)) {
+    if(ADMM_supp(Sigma,omega,Lambda_t[[k]])) {
+      Lambda_cand[[i]] <- Lambda_t[[k]]
+      break
+    }
+  }
+}
+
+print(Sys.time() - start)
+```
+
+```{r}
+df_res <- data.frame(I(Lambda_init), I(Lambda_cand), graph = I(lapply(Lambda_cand,function(mat) abs(mat)>0)),num_edges = array(unlist(lapply(Lambda_cand,function(mat) sum(abs(c(mat))>0) - n))))
+
+df_res <- df_res[df_res$num_edges == min(df_res$num_edges),]
+df_res <- df_res[!duplicated(df_res$num_edges), ]
+
+if(nrow(df_res) > 1) {
+  print("A grid search is needed.")
+}else {
+  print("The graph found by the algorithm is:")
+  print(df_res$graph)
+}
+```
+In the case of grid search:
+
+```{r}
+df_grid <- data.frame(id = numeric(), lmd = I(list()), gma = numeric(), obj = numeric())
+
+for (k in nrow(df_res)) {
+  eta <- 1
+  eta_inc <- 1.05
+  gma <- seq(0,10,0.01)
+  Lambda <- list(df_res$Lambda_init[[k]])
+  res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[1],eta,eta_inc)
+  Lambda[[1]] <- res_IHT_bktr[[1]]
+  obj <- list(res_IHT_bktr[[2]])
+
+  for (i in 1:length(gma)) {
+    res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
+    Lambda[[i+1]] <- res_IHT_bktr[[1]]
+    obj[[i+1]] <- res_IHT_bktr[[2]]
+  
+    if(nnzero(Lambda[[i+1]]) == n) {
+      break
+    }
+  }
+  
+  df_t <- data.frame(id = rep(k,length(obj)), lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)))
+  df_grid <- rbind(df_grid,df_t)
+}
+```
+
+```{r}
+# Obj
+plt_1 <- ggplot(df_grid,aes(x=gma,y=obj,color=id)) + 
+  geom_line() + 
+  labs(x="Gamma",y="Objective value")
+
+plt_2 <- ggplot(df_grid,aes(x=gma,y=obj,color=id)) + 
+  geom_point() + 
+  labs(x="Gamma",y="Objective value")
+
+plt_1
+plt_2
 ```
 
 
@@ -442,6 +1175,119 @@ plot(gma,obj)
 
 
 
+# Exhaustive search
+
+n=4
+
+```{r}
+n <- 4
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,0,0),c(0,runif(1,-1,1),0,0),c(0,0,runif(1,-1,1),0),c(0,0,0,runif(1,-1,1)))
+edge_ind <- setdiff(1:(n**2),seq(1,n**2,n+1))
+edge_real <- combn(edge_ind,4)
+Lambda_0[edge_real[,211]] <- runif(4,-1,1)
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_0
+Sigma
+```
+
+ADMM
+```{r}
+beta <- 0.5
+Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+Lambda_t <- Lambda_0
+alpha <- list(matrix(0,n,n))
+dis_1_2 <- list(1)
+obj <- list(1)
+  
+for (i in 1:1000) {
+  Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
+  Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
+  Lambda_1[[i+1]][Lambda_t == 0] <- 0
+  Lambda_2[[i+1]][Lambda_t == 0] <- 0
+  alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+  dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+  obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
+  
+  
+  if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+    print("ADMM succeeds!")
+    break
+  }
+}
+
+Lambda_1[[1]]
+Lambda_1[[i+1]]
+Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)
+obj[[i+1]]
+```
+
+## Greedy algorithm
+
+ADMM with given support
+```{r}
+ADMM_supp <- function(Sigma,omega,Lambda_t,beta=0.5) {
+  for (j in 1:5) {
+    # Initialization
+    Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+    Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+    alpha <- list(matrix(0,n,n))
+    dis_1_2 <- list(1)
+    obj <- list(1)
+  
+    for (i in 1:1000) {
+      Lambda_1[[i+1]] <- solve(2*(Sigma %*% Lambda_2[[i]] %*% t(Lambda_2[[i]]) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2[[i]] %*% (Sigma - omega * diag(n))) - alpha[[i]] + beta * Lambda_2[[i]])
+      Lambda_2[[i+1]] <- solve(2*Sigma %*% Lambda_1[[i+1]] %*% t(Lambda_1[[i+1]]) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1[[i+1]] %*% (Sigma - omega * diag(n)) + alpha[[i]] + beta * Lambda_1[[i+1]])
+      Lambda_1[[i+1]][Lambda_t == 0] <- 0
+      Lambda_2[[i+1]][Lambda_t == 0] <- 0
+      alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+      dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+      obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
+  
+  
+      if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+        return(list(TRUE,Lambda_1[[1]],Lambda_1[[i+1]],obj[[i+1]])) # Return the converged \Lambda and the objective function value
+      }
+    }
+  }
+  return(list(FALSE,Lambda_1[[i+1]],obj[[i+1]]))
+}
+```
+
+```{r}
+start <- Sys.time()
+
+# for (j in seq(ncol(edge_cand),1,-1)) {
+# List of indices of possible edges
+edge_ind <- setdiff(1:(n**2),seq(1,n**2,n+1))
+
+for (i in 1:length(edge_ind)) {
+  edge_cand <- combn(edge_ind,i)
+  for (j in seq(ncol(edge_cand),1,-1)) {
+    Lambda_t <- diag(n)
+    Lambda_t[edge_cand[,j]] <- 1
+    res_ADMM_supp <- ADMM_supp(Sigma,omega,Lambda_t)
+    if(res_ADMM_supp[[1]]) {
+      if(all((res_ADMM_supp[[3]]!=0) == (Lambda_0!=0))) {
+        print("Greedy algorithm succeed!")
+      }
+      print(res_ADMM_supp)
+      break
+    }
+  }
+  if(res_ADMM_supp[[1]]) {
+    break
+  }
+}
+
+print(Sys.time() - start)
+```
 
 
 
@@ -469,9 +1315,132 @@ for (i in 1:100) {
 plot(1:100,f_Sigma)
 ```
 
-## Simulation: Recover parameters in \Lambda
+
+# Other blocks
+
+```{r}
+n <- 3
+# Lambda <- rbind(runif(3,0.1,1),c(0,runif(1,0.1,1),0),c(0,0,runif(1,0.1,1)))  # Changable coefficients
+Lambda <- rbind(c(runif(1,0.1,1),0,runif(1,0.1,1)),c(0,runif(2,0.1,1)),c(0,0,runif(1,0.1,1)))
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega,gamma) {
+  n <- 3
+  Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
+  non_zero_par <- c(Lambda[-c(1,5,9)])
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(gamma * sum(abs(non_zero_par)))
+  return (obj)
+}
+
+gamma_par <- 1
+res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
+while(1) {
+  while (res$convergence) {
+    res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
+  }
+  off_diag_par <- length(which(abs(res$par[-c(1,5,9)]) > 0.01))
+  if (off_diag_par == 2) {
+    print(gamma_par)
+    break
+  }else if(off_diag_par < 2){
+   gamma_par <<- gamma_par - 1
+  }else {
+    gamma_par <<- gamma_par + 1
+  }
+}
+res
+length(which(abs(res$par[-c(1,5,9)]) > 0.01))
+t(matrix(res$par, nrow = 3))
+```
+
+n = 4
+
+```{r}
+n <- 4
+Lambda <- rbind(c(runif(2,0.1,1),0,0),c(0,runif(1,0.1,1),0,runif(1,0.1,1)),c(0,0,runif(2,0.1,1)),c(0,0,0,runif(1,0.1,1)))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega,gamma) {
+  n <- 4
+  Lambda <- t(matrix(par,nrow=n))
+  non_zero_par <- c(Lambda[-c(1,6,11,16)])
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + (gamma * sum(abs(non_zero_par)))
+  return (obj)
+}
+
+gamma_par <- 1
+while(1) {
+  res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
+  while (res$convergence) {
+    res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
+  }
+  off_diag_par <- length(which(abs(res$par[-c(1,6,11,16)]) > 0.01))
+  if (off_diag_par == 3) {
+    print(gamma_par)
+    break
+  }else if(off_diag_par < 3){
+   gamma_par <<- gamma_par - 1
+  }else {
+    gamma_par <<- gamma_par + 1
+  }
+}
+res
+length(which(abs(res$par[-c(1,6,11,16)]) > 0.01))
+t(matrix(res$par, nrow = 4))
+```
+
+```{r}
+# Cholesky
+n <- 4
+# Lambda <- rbind(c(0.3,0,0.4,0),c(0,0.5,0.8,0),c(0,0,0.6,0),c(0,0,0.4,0.9))  # Changable coefficients
+Lambda <- matrix(res$par, nrow = 4)
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+Lambda_prime <- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
+
+Lambda_prime
+```
+
+3.  Recover parameters with support known
+
+```{r}
+n <- 3
+Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Objective function
+obj_fn <- function(par,Sigma,omega) {
+  n <- 3
+  Lambda <- rbind(c(par[1],par[2],0),c(0,par[3],0),c(0,0,par[4]))
+  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
+  return (obj)
+}
+
+optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
+```
+
+Simulation: Recover parameters in \Lambda
 
 Level plots
+
 ```{r}
 n <- 3
 Lambda <- rbind(c(0.5,0,0.9),c(0,0.6,0.7),c(0,0,0.5))  # Changable coefficients
@@ -491,9 +1460,10 @@ for (i in 1:length(l_1)) {
 scatterplot3d(l_1,l_2,obj)
 ```
 
-## Lasso and gradient descent
+Lasso and gradient descent
 
 n = 3
+
 ```{r}
 n <- 3
 # Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(2,-1,1)),c(0,0,runif(1,-1,1))) # G_1
@@ -545,6 +1515,7 @@ plt_num_ed + geom_point()
 ```
 
 n = 3, and treat $\omega$ as a parameter
+
 ```{r}
 n <- 3
 Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(2,-1,1)),c(0,0,runif(1,-1,1))) # G_1
@@ -595,6 +1566,7 @@ plt_num_ed + geom_point()
 ```
 
 n=5
+
 ```{r}
 n <- 5
 Lambda <- rbind(c(runif(2,-1,1),0,0,0),c(0,runif(2,-1,1),0,0),c(0,0,runif(2,-1,1),0),c(0,0,0,runif(2,-1,1)),c(0,0,0,0,runif(1,-1,1))) # G_1
@@ -642,186 +1614,6 @@ plt_value + geom_point()
 plt_num_ed + geom_point()
 # plt_value + geom_smooth()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Other blocks
-
-```{r}
-n <- 3
-# Lambda <- rbind(runif(3,0.1,1),c(0,runif(1,0.1,1),0),c(0,0,runif(1,0.1,1)))  # Changable coefficients
-Lambda <- rbind(c(runif(1,0.1,1),0,runif(1,0.1,1)),c(0,runif(2,0.1,1)),c(0,0,runif(1,0.1,1)))
-
-omega <- 1
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-
-# Objective function
-obj_fn <- function(par,Sigma,omega,gamma) {
-  n <- 3
-  Lambda <- rbind(c(par[1],par[2],par[3]),c(par[4],par[5],par[6]),c(par[7],par[8],par[9]))
-  non_zero_par <- c(Lambda[-c(1,5,9)])
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + abs(gamma * sum(abs(non_zero_par)))
-  return (obj)
-}
-
-gamma_par <- 1
-res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-while(1) {
-  while (res$convergence) {
-    res <- optim(par=c(runif(9,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-  }
-  off_diag_par <- length(which(abs(res$par[-c(1,5,9)]) > 0.01))
-  if (off_diag_par == 2) {
-    print(gamma_par)
-    break
-  }else if(off_diag_par < 2){
-   gamma_par <<- gamma_par - 1
-  }else {
-    gamma_par <<- gamma_par + 1
-  }
-}
-res
-length(which(abs(res$par[-c(1,5,9)]) > 0.01))
-t(matrix(res$par, nrow = 3))
-```
-
-
-n = 4
-```{r}
-n <- 4
-Lambda <- rbind(c(runif(2,0.1,1),0,0),c(0,runif(1,0.1,1),0,runif(1,0.1,1)),c(0,0,runif(2,0.1,1)),c(0,0,0,runif(1,0.1,1)))  # Changable coefficients
-
-omega <- 1
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-
-# Objective function
-obj_fn <- function(par,Sigma,omega,gamma) {
-  n <- 4
-  Lambda <- t(matrix(par,nrow=n))
-  non_zero_par <- c(Lambda[-c(1,6,11,16)])
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2") ** 2 + (gamma * sum(abs(non_zero_par)))
-  return (obj)
-}
-
-gamma_par <- 1
-while(1) {
-  res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-  while (res$convergence) {
-    res <- optim(par=c(runif(16,0,1)), method = "BFGS", obj_fn,Sigma = Sigma,omega = omega, gamma = gamma_par)
-  }
-  off_diag_par <- length(which(abs(res$par[-c(1,6,11,16)]) > 0.01))
-  if (off_diag_par == 3) {
-    print(gamma_par)
-    break
-  }else if(off_diag_par < 3){
-   gamma_par <<- gamma_par - 1
-  }else {
-    gamma_par <<- gamma_par + 1
-  }
-}
-res
-length(which(abs(res$par[-c(1,6,11,16)]) > 0.01))
-t(matrix(res$par, nrow = 4))
-```
-
-
-
-```{r}
-# Cholesky
-n <- 4
-# Lambda <- rbind(c(0.3,0,0.4,0),c(0,0.5,0.8,0),c(0,0,0.6,0),c(0,0,0.4,0.9))  # Changable coefficients
-Lambda <- matrix(res$par, nrow = 4)
-
-omega <- 1
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-
-Lambda_prime <- solve(chol(Sigma)) %*% chol(Sigma - omega * diag(n))
-
-Lambda_prime
-```
-
-
-3. Recover parameters with support known
-```{r}
-n <- 3
-Lambda <- rbind(c(0.5,0.7,0),c(0,0.6,0),c(0,0,0.4))  # Changable coefficients
-
-omega <- 1
-
-vec_Sigma <- solve(diag(n**2)-(t(Lambda) %x% t(Lambda))) %*% vec(omega * diag(n))
-Sigma <- matrix(vec_Sigma, nrow = n)
-
-# Objective function
-obj_fn <- function(par,Sigma,omega) {
-  n <- 3
-  Lambda <- rbind(c(par[1],par[2],0),c(0,par[3],0),c(0,0,par[4]))
-  obj <- norm(Sigma - t(Lambda) %*% Sigma %*% Lambda - omega*diag(n), type="2")
-  return (obj)
-}
-
-optim(par=rep(0L,4),obj_fn,Sigma = Sigma,omega = omega)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
