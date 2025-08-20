@@ -111,7 +111,7 @@ ISTA with backtracking
 ```{r}
 # ISTA update with stepsize eta
 ft_ISTA_update <- function(Lambda_0,Sigma,gma,eta) {
-     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+     grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -246,7 +246,7 @@ ft_ISTA_update <- function(Lambda_0,Lambda_k,Sigma,gma,eta) {
 # Initialization
 eta <- list(10) # Stepsize
 eta_inc <- 1.1 # The increment of stepsize, a constant > 1
-gma <- 0.5 # l1 penalty
+gma <- 0.1 # l1 penalty
 obj <- list(1)
 obj_gap <- list(1)
 
@@ -319,7 +319,7 @@ ISTA with backtracking
 
 # ISTA update with stepsize eta
 ft_ISTA_update <- function(Lambda_0,Sigma,omega,gma,eta) {
-    grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -401,8 +401,8 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```{r}
 # Lambda <- list(res_ADMM[[1]])
 # Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
-# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
-Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
 
 eta <- 1
 eta_inc <- 1.05
@@ -558,14 +558,14 @@ n=3
 ```{r}
 n <- 3
 # Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
 
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
-Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 
 omega <- 1
 
@@ -578,7 +578,7 @@ IHT with backtracking
 ```{r}
 # IHT update with stepsize eta
 ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
-     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+     grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -600,9 +600,9 @@ ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
 
 ```{r}
 # Initialization
-eta <- list(10) # Stepsize
-eta_inc <- 1.5 # The increment of stepsize, a constant > 1
-gma <- 1# l1 penalty
+eta <- list(1) # Stepsize
+eta_inc <- 1.05 # The increment of stepsize, a constant > 1
+gma <- 0.05 # l1 penalty
 obj <- list(1)
 obj_gap <- list(1)
 
@@ -672,7 +672,7 @@ IHT with backtracking
 
 # ISTA update with stepsize eta
 ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
-     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+     grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -754,9 +754,9 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```
 
 ```{r}
-Lambda <- list(res_ADMM[[1]])
+# Lambda <- list(res_ADMM[[1]])
 # Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
-# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+Lambda <- list(matrix(runif(n**2,-1,1),n,n))
 # Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
 
 eta <- 1
@@ -792,7 +792,7 @@ obj
 ### Proportion of finding the true graph with random initialization
 
 ```{r}
-num_exp <- 100
+num_exp <- 10
 res_pos <- 0
 
 eta <- 1
@@ -902,6 +902,7 @@ plt_3
 plt_4
 ```
 
+
 # Sol1: IHT+ADMM+Grid search
 
 ADMM with given support
@@ -941,7 +942,7 @@ IHT with backtracking
 
 # IHT update with stepsize eta
 ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
-     grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+     grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
     Lambda_updt <- matrix(0,n,n)
     for (j in 1:n) {
       for(k in 1:n) {
@@ -1024,14 +1025,14 @@ Initialization
 ```{r}
 n <- 3
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
-# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),0,runif(1,-1,1)))
 
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)))
-Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 
 omega <- 1
 
@@ -1043,9 +1044,9 @@ Sigma
 ```
 
 ```{r}
-# n=5
-n <- 5
-Lambda_supp <- rbind(c(1,1,0,0,0),c(0,1,1,0,0),c(0,0,1,1,0),c(0,0,0,1,1),c(0,0,0,0,1))
+# n=4
+n <- 4
+Lambda_supp <- rbind(c(1,0,0,1),c(0,1,0,1),c(0,0,1,1),c(0,0,0,1))
 
 Lambda_0 <- matrix(0,n,n)
 Lambda_0[Lambda_supp != 0] <- runif(sum(abs(c(Lambda_supp) )>0),-1,1)
@@ -1314,6 +1315,352 @@ for (i in 1:100) {
 
 plot(1:100,f_Sigma)
 ```
+
+# Summary
+
+## Accuracy: ISTA & IHT
+
+### Functions
+
+IHT
+
+```{r}
+# grad <- -4 * t((Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n)))))
+
+# ISTA update with stepsize eta
+ft_IHT_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+     grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    grad_step <- Lambda_0 - eta * grad
+    Lambda_updt <- grad_step
+    
+    mask_diag <- diag(n) == 1        # diagonal entries
+    mask_off <- !mask_diag
+    
+    mask_keep <- abs(grad_step) > sqrt(2 * eta * gma)
+    Lambda_updt[mask_off & !mask_keep] <- 0
+    
+    return (list(Lambda_updt,grad))
+}
+
+ft_IHT_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
+  # eta_0 is the initial stepsize (before backtracking)
+  eta <- list(eta_0)
+  
+  Lambda <- list(Lambda_0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) + gma * (sum(abs(c(Lambda_0)) >0)-n))
+  obj_gap <- list(obj[[1]])
+  
+  for (i in 1:1000) {
+    eta_t <- eta[[i]]
+    l <- 1
+    repeat {
+      IHT_updt <- ft_IHT_update(Lambda[[i]], Sigma, omega, gma, eta_t)
+      Lambda_updt <- IHT_updt[[1]]
+      grad_updt <- IHT_updt[[2]]
+  
+      lhs <- frobenius.norm(Sigma - t(Lambda_updt) %*% Sigma %*% Lambda_updt - omega * diag(n))
+      rhs <- frobenius.norm(Sigma - t(Lambda[[i]]) %*% Sigma %*% Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt - Lambda[[i]])^2) / (2*eta_t)
+  
+      if (lhs <= rhs) break
+      eta_t <- eta_t / eta_inc
+      
+      l <- l+1
+      if(l > 1000) break
+    }
+    eta[[i+1]] <- eta_t
+    
+    IHT_updt <- ft_IHT_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
+    Lambda[[i+1]] <- IHT_updt[[1]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda[[i+1]]) )>0)-n)
+    obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+    if(obj_gap[[i+1]] < 1e-6) {
+      return(list(Lambda[[i+1]],obj[[i+1]],TRUE))
+    }
+  }
+  # print("IHT did not converge within 1000 iterations. Objective gap:")
+  # print(obj_gap[[i+1]])
+  return(list(Lambda[[i+1]],obj[[i+1]],FALSE))
+}
+```
+
+```{r}
+get_prop_IHT <- function (n,Sigma, omega, Lambda_0, num_exp, eta, eta_inc) {
+  res_pos <- 0
+  
+  for (j in 1:num_exp) {
+    Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+    gma <- list(0)
+    err_edges <- integer(0)
+    res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+    #if(!res_IHT_bktr[[3]]){
+    #  return(list(res_pos / num_exp,FALSE))
+    #}
+    Lambda[[1]] <- res_IHT_bktr[[1]]
+    err_edges[1] <- sum(xor(Lambda_0 != 0, Lambda[[1]] != 0))
+
+    i <- 1
+    repeat {
+      Lambda[[i+1]] <- Lambda[[i]]
+      t_gma <- gma[[i]]
+      while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+        t_gma <- t_gma + 0.01
+        res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+        # if(!res_IHT_bktr[[3]]){
+        #  return(list(res_pos / num_exp,FALSE))
+        #}
+        Lambda[[i+1]] <- res_IHT_bktr[[1]]
+      }
+      gma[[i+1]] <- t_gma
+      err_edges[i+1] <- sum(xor(Lambda_0 != 0, Lambda[[i+1]] != 0))
+      if(nnzero(Lambda[[i+1]]) == n)  break
+      i <- i+1
+    }
+  
+    if (0 %in% err_edges) {
+      res_pos <- res_pos+1
+    }
+  }
+  
+  return(list(res_pos / num_exp,TRUE))
+}
+```
+
+ISTA
+```{r}
+# grad <- -4 * t((Sigma %*% Lambda_0) %*% (2*(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) -  diag(diag(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega*diag(n)))))
+
+# ISTA update with stepsize eta
+ft_ISTA_update <- function(Lambda_0,Sigma,omega,gma,eta) {
+    grad <- grad <- -2 * ((Sigma %*% Lambda_0) %*% (Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))) / frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n))
+    grad_step <- Lambda_0 - eta * grad
+    Lambda_updt <- grad_step
+    
+    mask_diag <- diag(n) == 1
+    Lambda_updt[!mask_diag & grad_step < -eta*gma] <- grad_step[!mask_diag & grad_step < -eta*gma] + eta*gma
+    Lambda_updt[!mask_diag & grad_step >  eta*gma] <- grad_step[!mask_diag & grad_step >  eta*gma] - eta*gma
+    Lambda_updt[!mask_diag & abs(grad_step) <= eta*gma] <- 0
+    
+    return (list(Lambda_updt,grad))
+}
+
+ft_ISTA_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
+  # eta_0 is the initial stepsize (before backtracking)
+  eta <- list(eta_0)
+  
+  Lambda <- list(Lambda_0)
+  obj <- list(frobenius.norm(Sigma - t(Lambda_0)%*%Sigma%*%Lambda_0 - omega * diag(n)) + gma * sum(abs(c(Lambda_0) - c(diag(diag(Lambda_0))))))
+  obj_gap <- list(obj[[1]])
+  
+  for (i in 1:1000) {
+    eta_t <- eta[[i]]
+    l <- 1
+    repeat {
+      ISTA_updt <- ft_ISTA_update(Lambda[[i]], Sigma, omega, gma, eta_t)
+      Lambda_updt <- ISTA_updt[[1]]
+      grad_updt <- ISTA_updt[[2]]
+  
+      lhs <- frobenius.norm(Sigma - t(Lambda_updt) %*% Sigma %*% Lambda_updt - omega * diag(n))
+      rhs <- frobenius.norm(Sigma - t(Lambda[[i]]) %*% Sigma %*% Lambda[[i]] - omega * diag(n)) + sum((Lambda_updt - Lambda[[i]]) * grad_updt) + (frobenius.norm(Lambda_updt - Lambda[[i]])^2) / (2*eta_t)
+  
+      if (lhs <= rhs) break
+      eta_t <- eta_t / eta_inc
+      
+      l <- l+1
+      if(l>1000) break
+    }
+    eta[[i+1]] <- eta_t
+    
+    ISTA_updt <- ft_ISTA_update(Lambda[[i]],Sigma,omega,gma,eta[[i+1]])
+    Lambda[[i+1]] <- ISTA_updt[[1]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda[[i+1]])%*%Sigma%*%Lambda[[i+1]] - omega * diag(n)) + gma * sum(abs(c(Lambda[[i+1]]) - c(diag(diag(Lambda[[i+1]])))))
+    obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    
+    if(obj_gap[[i+1]] < 1e-4) {
+      return(list(Lambda[[i+1]],obj[[i+1]],TRUE))
+    }
+  }
+  #print("ISTA did not converge within 10000 iterations. Objective gap:")
+  #print(obj_gap[[i+1]])
+  return(list(Lambda[[i+1]],obj[[i+1]],FALSE))
+}
+```
+
+```{r}
+get_prop_ISTA <- function (n,Sigma, omega, Lambda_0, num_exp, eta, eta_inc) {
+  res_pos <- 0
+  res_pos_t <- 0
+  
+  for (j in 1:num_exp) {
+    Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+    gma <- list(0)
+    err_edges <- integer(0)
+    err_edges_t <- integer(0)
+    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+    # if(!res_ISTA_bktr[[3]]){
+    #  return(list(res_pos / num_exp,FALSE))
+    # }
+    Lambda[[1]] <- res_ISTA_bktr[[1]]
+    err_edges[1] <- sum(xor(Lambda_0 != 0, Lambda[[1]] != 0))
+    err_edges_t[1] <- sum(xor(t(Lambda_0) != 0, Lambda[[1]] != 0))
+
+    for (i in 1:10000) {
+      Lambda[[i+1]] <- Lambda[[i]]
+      t_gma <- gma[[i]]
+      while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+        t_gma <- t_gma + 0.01
+        res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+        # if(!res_ISTA_bktr[[3]]){
+        #  return(list(res_pos / num_exp,FALSE))
+        # }
+        Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+      }
+      gma[[i+1]] <- t_gma
+      err_edges[i+1] <- sum(xor(Lambda_0 != 0, Lambda[[i+1]] != 0))
+      err_edges_t[i+1] <- sum(xor(t(Lambda_0) != 0, Lambda[[i+1]] != 0))
+      if(nnzero(Lambda[[i+1]]) == n) {
+        break
+      }
+    }
+  
+    if (0 %in% err_edges) {
+      res_pos <- res_pos+1
+    }else if (0 %in% err_edges_t) {
+      res_pos_t <- res_pos_t+1
+    }
+  }
+  
+  return(list(res_pos / num_exp,res_pos_t / num_exp,TRUE))
+}
+```
+
+### Box plot
+```{r}
+df <- data.frame(n = numeric(), algo = character(), prop = numeric())
+Lambda_init <- list()
+```
+
+
+```{r}
+num_exp <- 10
+
+# n=3
+n <- 3
+Lambda_supp <- rbind(c(1,0,1),c(0,1,1),c(0,0,1))
+
+
+start <- Sys.time()
+
+i<-1 
+while (i<=25) {
+  print(i)
+  Lambda_0 <- matrix(0,n,n)
+  Lambda_0[Lambda_supp != 0] <- runif(sum(abs(c(Lambda_supp))>0),-1,1)
+
+  omega <- 1
+
+  vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+  Sigma <- matrix(vec_Sigma, nrow = n)
+  
+  res_IHT_prop <- get_prop_IHT(n,Sigma, omega, Lambda_0, num_exp, 1, 1.05)
+  res_ISTA_prop <- get_prop_ISTA(n,Sigma, omega, Lambda_0, num_exp, 1, 1.05)
+  # if(res_IHT_prop[[2]]) {
+    df_IHT <- data.frame(n=n,algo="IHT",prop=res_IHT_prop[[1]])
+    df_ISTA <- data.frame(n=n,algo="ISTA",prop=res_ISTA_prop[[1]])
+    df_ISTA_t <- data.frame(n=n,algo="ISTA_t",prop=res_ISTA_prop[[2]])
+    df <- rbind(df,df_IHT,df_ISTA,df_ISTA_t)
+    Lambda_init[[i]] <- Lambda_0
+    i <- i+1
+  # }
+}
+
+print(Sys.time() - start)
+```
+
+Use multiple workers
+```{r}
+library(future.apply)
+library(progressr)
+```
+
+```{r}
+# set up parallel plan (multisession is safest in RStudio)
+plan(multisession, workers = parallel::detectCores() - 1)
+
+n <- 3
+Lambda_supp <- rbind(c(1,0,1),
+                     c(0,1,1),
+                     c(0,0,1))
+
+num_exp <- 10   # keep small just for testing speedup
+num_init <- 25
+
+with_progress({
+  p <- progressor(along = 1:num_init)   
+
+  results <- future_lapply(1:num_init, function(i) {
+    # construct one random initialization
+    Lambda_0 <- matrix(0, n, n)
+    Lambda_0[Lambda_supp != 0] <- runif(sum(Lambda_supp != 0), -1, 1)
+    omega <- 1
+
+    vec_Sigma <- solve(diag(n^2) - (t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+    Sigma <- matrix(vec_Sigma, nrow = n)
+
+    res_IHT_prop  <- get_prop_IHT(n, Sigma, omega, Lambda_0, num_exp, 1, 1.05)
+    res_ISTA_prop <- get_prop_ISTA(n, Sigma, omega, Lambda_0, num_exp, 1, 1.05)
+
+    # update progress
+    p()
+
+    # return results
+    list(
+      Lambda_0 = Lambda_0,
+      res = list(
+        data.frame(n=n, algo="IHT",    prop=res_IHT_prop[[1]], init_id = i),
+        data.frame(n=n, algo="ISTA",   prop=res_ISTA_prop[[1]], init_id = i),
+        data.frame(n=n, algo="ISTA_t", prop=res_ISTA_prop[[2]], init_id = i)
+      )
+  )
+  }, future.seed = TRUE)
+})
+
+
+# combine results into one data frame and record the initializations
+Lambda_star <- lapply(results, `[[`, "Lambda_0")
+df_t <- do.call(rbind, unlist(lapply(results, `[[`, "res"), recursive=FALSE))
+
+save(Lambda_star,df_t,file="res_3_25.RData")
+```
+
+
+```{r}
+plt <- ggplot(df,aes(algo,prop)) + geom_boxplot(fill = "dodgerblue1", colour = "black", alpha = 0.5, outlier.colour = "tomato2") + 
+  labs(
+    x = "Algorithm",
+    y = "Proportion of success",
+    title = "n=3"
+  )
+
+
+plt
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Other blocks
