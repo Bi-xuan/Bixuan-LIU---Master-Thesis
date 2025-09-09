@@ -9,6 +9,8 @@ library("ggplot2")
 theme_set(theme_bw())
 
 library("scatterplot3d") # load
+
+library(dplyr)
 ```
 
 # Algorithm: Splitting
@@ -47,8 +49,9 @@ n=3
 
 ```{r}
 n <- 3
+Lambda_0 <- Lambda_star[[1]]
 # Lambda <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)))
-Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 # Lambda <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
@@ -61,6 +64,8 @@ omega <- 1
 
 vec_Sigma <- solve(diag(n**2)-t(Lambda_0) %x% t(Lambda_0)) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
+
+frobenius.norm(Sigma)
 ```
 
 ```{r}
@@ -377,8 +382,9 @@ n=3
 
 ```{r}
 n <- 3
+Lambda_0 <- Lambda_star[[1]]
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
-Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
+# Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(runif(1,-1,1),0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),0),c(0,runif(1,-1,1),0),c(0,runif(1,-1,1),runif(1,-1,1)))
@@ -391,6 +397,8 @@ omega <- 1
 
 vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
+
+frobenius.norm(Sigma)
 ```
 
 ```{r}
@@ -399,10 +407,9 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```
 
 ```{r}
-# Lambda <- list(res_ADMM[[1]])
-# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+source("functions.R")
+
 Lambda <- list(matrix(runif(n**2,-1,1),n,n))
-# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
 
 eta <- 1
 eta_inc <- 1.05
@@ -423,7 +430,7 @@ for (i in 1:100) {
   obj[[i+1]] <- res_ISTA_bktr[[2]]
   gma[[i+1]] <- t_gma
   err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
-  if(nnzero(Lambda[[i+1]]) == n) {
+  if(nnzero(Lambda[[i+1]]) == n+1) {
     print("Algorithm succeeds!")
     break
   }
@@ -756,6 +763,13 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```{r}
 # Lambda <- list(res_ADMM[[1]])
 # Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
+source("functions.R")
+n <- 3
+Lambda_0 <- Lambda_star[[1]]
+omega <- 1
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
 Lambda <- list(matrix(runif(n**2,-1,1),n,n))
 # Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
 
@@ -1633,21 +1647,86 @@ df_t <- do.call(rbind, unlist(lapply(results, `[[`, "res"), recursive=FALSE))
 save(Lambda_star,df_t,file="res_3_25.RData")
 ```
 
+```{r}
+partial_files <- list.files("partial_result", pattern = "partial_result_.*\\.rds$", full.names = TRUE)
+all_results <- lapply(partial_files, readRDS)
+
+df_t <- do.call(rbind, unlist(lapply(all_results, `[[`, "res"), recursive = FALSE))
+Lambda_star_t <- lapply(all_results, `[[`, "Lambda_0")
+
+# df <- rbind(df,df_t[,-4])
+# Lambda_star <- c(Lambda_star,Lambda_star_t)
+df <- df_t
+Lambda_star <- Lambda_star_t
+
+save(df,Lambda_star,file="res_10_4.RData")
+```
 
 ```{r}
 plt <- ggplot(df,aes(algo,prop)) + geom_boxplot(fill = "dodgerblue1", colour = "black", alpha = 0.5, outlier.colour = "tomato2") + 
   labs(
     x = "Algorithm",
     y = "Proportion of success",
-    title = "n=3"
+    title = "n=10"
   )
 
 
 plt
 ```
 
+## ROC
+```{r}
+partial_files <- list.files("partial_result", pattern = "partial_result_.*\\.rds$", full.names = TRUE)
+all_results <- lapply(partial_files, readRDS)
+
+df_t <- do.call(rbind, unlist(lapply(all_results, `[[`, "res"), recursive = FALSE))
+
+# df <- rbind(df,df_t)
+df <- df_t
+
+save(df,Lambda_star,file="res_3_8.RData")
+```
+
+```{r}
+df_filtered <- df %>%
+  group_by(algo, FPR) %>%
+  filter(TPR == max(TPR)) %>%
+  ungroup()
+
+df_filtered <- df_filtered[nrow(df_filtered):1,]
+
+plt <- ggplot(df_filtered, aes(x = FPR, y = TPR, color = algo, group = algo)) +
+  geom_line() +
+  geom_point(size = 2) +         # add points
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "black") +
+  labs(x = "False Positive Rate", 
+       y = "True Positive Rate", 
+       color = "Algorithm") +
+  theme_minimal(base_size = 14)
+
+plt
+```
+
+```{r}
+df_clean <- na.omit(df)
+plt_TPR <- ggplot(df_clean,aes(algo,TPR)) + geom_boxplot(fill = "dodgerblue1", colour = "black", alpha = 0.5, outlier.colour = "tomato2") + 
+  labs(
+    x = "Algorithm",
+    y = "True positive rate",
+    title = "n=3"
+  )
+
+plt_FPR <- ggplot(df_clean,aes(algo,FPR)) + geom_boxplot(fill = "dodgerblue1", colour = "black", alpha = 0.5, outlier.colour = "tomato2") + 
+  labs(
+    x = "Algorithm",
+    y = "False positive rate",
+    title = "n=3"
+  )
 
 
+plt_TPR
+plt_FPR
+```
 
 
 
