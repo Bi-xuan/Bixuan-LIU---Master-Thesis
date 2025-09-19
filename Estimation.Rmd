@@ -11,6 +11,9 @@ theme_set(theme_bw())
 library("scatterplot3d") # load
 
 library(dplyr)
+library(tidyr)
+
+library(reshape2)
 ```
 
 # Algorithm: Splitting
@@ -382,7 +385,7 @@ n=3
 
 ```{r}
 n <- 3
-Lambda_0 <- Lambda_star[[1]]
+Lambda_0 <- Lambda_star[[3]]
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,0),c(runif(1,-1,1),runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),0,runif(1,-1,1)),c(0,runif(1,-1,1),runif(1,-1,1)),c(0,0,runif(1,-1,1)))
 # Lambda_0 <- rbind(c(runif(1,-1,1),runif(1,-1,1),runif(1,-1,1)),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1)))
@@ -407,36 +410,40 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```
 
 ```{r}
-source("functions.R")
 
-Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+Lambda <- list(Lambda_init[[5]])
 
 eta <- 1
 eta_inc <- 1.05
-gma <- list(0)
-res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+# gma_cand <- log(seq(100,1,-0.1),2)
+gma_cand <- log(seq(1,100,0.1),5)
+gma <- c(gma_cand[1])
+# gma_cand <- 10 ** (seq(-5,log10(2.5),0.003))
+# gma_cand <- seq(0,2,0.001)
+res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[1],eta,eta_inc)
 Lambda[[1]] <- res_ISTA_bktr[[1]]
 obj <- list(res_ISTA_bktr[[2]])
-err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+
+k <- 1
 
 for (i in 1:100) {
   Lambda[[i+1]] <- Lambda[[i]]
-  t_gma <- gma[[i]]
   while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
-    t_gma <- t_gma + 0.01
+    k <- k + 1
+    t_gma <- gma_cand[k]
     res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
     Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+    
+    if(k == length(gma_cand)) break
   }
   obj[[i+1]] <- res_ISTA_bktr[[2]]
-  gma[[i+1]] <- t_gma
-  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
-  if(nnzero(Lambda[[i+1]]) == n+1) {
-    print("Algorithm succeeds!")
-    break
-  }
+  gma[i+1] <- t_gma
+  if(nnzero(Lambda[[i+1]]) == n || k == length(gma_cand)) break
 }
 
 Lambda
+
+gma
 ```
 
 Proportion of the case where we find the true graph
@@ -485,77 +492,114 @@ print(res_pos_t / num_exp)
 ```
 
 ## Algo to do a grid of \gamma
+```{r}
+source("functions.R")
+load("result/Accuracy/res_3.RData")
+n <- 3
+
+# Lambda_supp <- rbind(c(1,0,1),
+#                      c(0,1,1),
+#                      c(1,1,1))
+# Lambda_0 <- Lambda_supp
+# Lambda_0[Lambda_supp == 1] <- runif(sum(Lambda_supp))
+
+Lambda_0 <- Lambda_star[[9]]
+
+omega <- 1
+
+vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
+Sigma <- matrix(vec_Sigma, nrow = n)
+
+# Lambda_init <- lapply(1:10, function(x) matrix(runif(n**2,-1,1), n,n))
+```
+
 
 ```{r}
-Lambda <- list(res_ADMM[[1]])
-# Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
-# Lambda <- list(matrix(runif(n**2,-1,1),n,n))
-# Lambda <- list(matrix(runif(n**2,-0.01,0.01),n,n) + Lambda_0)
+df <- data.frame(lmd = numeric(), gma = numeric(), obj = numeric(), init_id = character())
 
-eta <- 1
-eta_inc <- 1.5
-gma <- seq(0,10,0.01)
-obj <- list(frobenius.norm(Sigma - t(Lambda[[1]])%*%Sigma%*%Lambda[[1]] - omega * diag(n)) ** 2)
-err_edges <- list(sum((Lambda_0 != 0) != (Lambda[[1]] != 0)))
+for (k in 1:length(Lambda_init)) {
+  Lambda <- list(Lambda_init[[k]])
 
-for (i in 1:length(gma)) {
-  res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
-  Lambda[[i+1]] <- res_ISTA_bktr[[1]]
-  obj[[i+1]] <- res_ISTA_bktr[[2]]
-  err_edges[[i+1]] <- sum((Lambda_0 != 0) != (Lambda[[i+1]] != 0))
+  eta <- 1
+  eta_inc <- 1.5
+  # gma <- log(seq(100,1,-0.05),2)
+  gma <- log(seq(1,100,0.05),2)
+  res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+  Lambda[[1]] <- res_ISTA_bktr[[1]]
+  obj <- list(res_ISTA_bktr[[2]])
+
+  for (i in 1:length(gma)) {
+    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
+    Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+    obj[[i+1]] <- res_ISTA_bktr[[2]]
   
-  if(nnzero(Lambda[[i+1]]) == n) {
-    print(i)
-    print(0 %in% err_edges)
-    break
+    if(nnzero(Lambda[[i+1]]) == n) break
   }
+  df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), init_id = rep(as.character(k),length(obj)))
+
+  df <- rbind(df, df_t)
 }
 ```
 
 ```{r}
-df <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("NEIB",length(obj)))
-
-df_plt <- df[-1,]
-```
-
-```{r}
-# df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("DIAG",length(obj)))
-# df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("RAND",length(obj)))
-df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), err_edges = array(unlist(err_edges)), init = rep("ADMM",length(obj)))
-
-df_t_plt <- df_t[-1,]
-df <- rbind(df, df_t)
-df_plt <- rbind(df_plt,df_t_plt)
-```
-
-```{r}
 # Obj
-plt_1 <- ggplot(df_plt,aes(x=gma,y=obj,color=init)) + 
+plt_1 <- ggplot(df,aes(x=gma,y=obj,color=init_id)) + 
   geom_line() + 
   labs(x="Gamma",y="Objective value")
 
-plt_2 <- ggplot(df_plt,aes(x=gma,y=obj,color=init)) + 
+plt_2 <- ggplot(df,aes(x=gma,y=obj,color=init_id)) + 
   geom_point() + 
   labs(x="Gamma",y="Objective value")
 
-# Wrong edges
-plt_3 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
-  geom_line() + 
-  labs(x="Gamma",y="Number of wrong edges")
-
-plt_4 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
-  geom_point() + 
-  labs(x="Gamma",y="Number of wrong edges")
+# # Wrong edges
+# plt_3 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
+#   geom_line() + 
+#   labs(x="Gamma",y="Number of wrong edges")
+# 
+# plt_4 <- ggplot(df_plt,aes(x=gma,y=err_edges,color=init)) + 
+#   geom_point() + 
+#   labs(x="Gamma",y="Number of wrong edges")
 
 plt_1
 plt_2
-plt_3
-plt_4
+# plt_3
+# plt_4
+```
+```{r}
+# Convert df$lmd (list of matrices) into a long format, but keep init_id
+df_long <- do.call(rbind, lapply(1:nrow(df), function(i) {
+  Lambda_mat <- df$lmd[[i]]
+  Lambda_melt <- melt(Lambda_mat)
+  data.frame(
+    row = Lambda_melt$Var1,
+    col = Lambda_melt$Var2,
+    value = Lambda_melt$value,
+    gma = df$gma[i],
+    init_id = df$init_id[i]
+  )
+}))
+
+# Filter for the 7th initialization
+# df_7 <- subset(df_long, init_id == "7")
+
+# Filter out the diagonal entries
+df_7 <- subset(df_long, init_id == "9" & row != col) 
+
+# Plot entries of Lambda vs gamma for init_id = 7
+ggplot(df_7, aes(x = gma, y = value, 
+                 color = interaction(row, col), 
+                 group = interaction(row, col))) +
+  geom_line(alpha = 0.7) +
+  labs(
+    title = "Lambda entries vs Gamma (Initialization 9)",
+    x = expression(gamma),
+    y = "Lambda entry value",
+    color = "Entry (row,col)"
+  ) +
+  theme_minimal()
+
 ```
 
-```{r}
-df$lmd[df$init == "ADMM"]
-```
 
 # IHT
 
@@ -765,7 +809,7 @@ res_ADMM <- ft_ADMM(Sigma,omega, beta)
 # Lambda <- list(rbind(c(runif(1,-1,1),0,0),c(0,runif(1,-1,1),0),c(0,0,runif(1,-1,1))))
 source("functions.R")
 n <- 3
-Lambda_0 <- Lambda_star[[1]]
+Lambda_0 <- Lambda_star[[3]]
 omega <- 1
 vec_Sigma <- solve(diag(n**2)-(t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
 Sigma <- matrix(vec_Sigma, nrow = n)
@@ -1155,6 +1199,8 @@ plt_1
 plt_2
 ```
 
+
+# Sol2: ADMM + ISTA
 
 
 
@@ -1676,6 +1722,79 @@ plt
 
 ## ROC
 ```{r}
+compare_rocs <- function(n, Sigma, omega,Lambda_0, Lambda_inits,gma_cand=log10(seq(100,1,-0.1)), eta=1, eta_inc=1.05) {
+  results <- list()
+  
+  for (j in seq_along(Lambda_inits)) {
+    cat("Running init", j, "...\n")
+    
+    roc_res <- get_roc_ISTA(
+      n = n,
+      Sigma = Sigma,
+      omega = omega,
+      Lambda_0 = Lambda_0,
+      Lambda_init = Lambda_inits[[j]],
+      gma_cand = gma_cand,
+      eta = eta,
+      eta_inc = eta_inc
+    )
+    
+    results[[j]] <- list(
+      init_id = paste0("init_", j),
+      TPR = roc_res[[1]],
+      FPR = roc_res[[2]],
+      TPR_t = roc_res[[3]],
+      FPR_t = roc_res[[4]]
+    )
+  }
+  
+  return(results)
+}
+```
+
+```{r}
+gma_cand <- log(seq(1,100,0.05),2)
+Lambda_0 <- Lambda_star[[9]]
+# load("Lambda_init_9.RData")
+
+all_rocs <- compare_rocs(n, Sigma, omega,Lambda_0, Lambda_init,gma_cand)
+
+roc_df <- do.call(rbind, lapply(seq_along(all_rocs), function(j) {
+  data.frame(
+    init_id = all_rocs[[j]]$init_id,
+    TPR = all_rocs[[j]]$TPR,
+    FPR = all_rocs[[j]]$FPR,
+    TPR_t = all_rocs[[j]]$TPR_t,
+    FPR_t = all_rocs[[j]]$FPR_t
+  )
+}))
+
+```
+
+```{r}
+roc_df <- do.call(rbind, lapply(seq_along(all_rocs), function(j) {
+  data.frame(
+    init_id = all_rocs[[j]]$init_id,
+    FPR = all_rocs[[j]]$FPR,
+    TPR = all_rocs[[j]]$TPR
+  )
+}))
+
+# --- Plot ROC curves ---
+library(ggplot2)
+
+ggplot(roc_df[nrow(roc_df):1,], aes(x = FPR, y = TPR, color = init_id)) +
+  geom_line(size = 1) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = "ROC Curves across Lambda_inits",
+       x = "False Positive Rate (FPR)",
+       y = "True Positive Rate (TPR)",
+       color = "Initialization") +
+  theme_minimal()
+```
+
+
+```{r}
 partial_files <- list.files("partial_result", pattern = "partial_result_.*\\.rds$", full.names = TRUE)
 all_results <- lapply(partial_files, readRDS)
 
@@ -1688,12 +1807,11 @@ save(df,Lambda_star,file="res_3_8.RData")
 ```
 
 ```{r}
+df <- df_t
 df_filtered <- df %>%
   group_by(algo, FPR) %>%
-  filter(TPR == max(TPR)) %>%
+  slice_max(order_by = TPR, n = 1, with_ties = FALSE) %>%
   ungroup()
-
-df_filtered <- df_filtered[nrow(df_filtered):1,]
 
 plt <- ggplot(df_filtered, aes(x = FPR, y = TPR, color = algo, group = algo)) +
   geom_line() +

@@ -55,7 +55,7 @@ with_progress({
   p <- progressor(along = 1:nrow(pairs))   
   
   results <- future_lapply(1:num_init, function(i) {
-    Lambda_0 <- Lambda_star[[1]]
+    Lambda_0 <- Lambda_star[[6]]
     omega <- 1
     
     vec_Sigma <- solve(diag(n^2) - (t(Lambda_0) %x% t(Lambda_0))) %*% vec(omega * diag(n))
@@ -90,4 +90,4 @@ with_progress({
 # -------- Collect results --------
 df_t <- do.call(rbind, unlist(lapply(results, `[[`, "res"), recursive = FALSE))
 
-save(df_t, file = "res_3_roc.RData")
+save(df_t, file = "res_3_roc_4_all_10.RData")

@@ -257,7 +257,67 @@ ft_ISTA_bktr <- function(Lambda_0,Sigma,omega,gma,eta_0, eta_inc) {
 #   return(list(res_pos / num_exp,res_pos_t / num_exp,TRUE))
 # }
 
-get_roc_ISTA <- function (n,Sigma, omega, Lambda_0, num_exp, eta, eta_inc) {
+# get_roc_ISTA <- function (n,Sigma, omega, Lambda_0, num_exp, eta, eta_inc) {
+#   TPR <- numeric()
+#   FPR <- numeric()
+#   TPR_t <- numeric()
+#   FPR_t <- numeric()
+#   k <- 1
+#   
+#   off_diag <- row(Lambda_0) != col(Lambda_0)
+#   num_pos <- sum((Lambda_0 != 0)[off_diag])
+#   num_neg <- sum((Lambda_0 == 0)[off_diag])
+#   
+#   for (j in 1:num_exp) {
+#     Lambda <- list(matrix(runif(n**2,-1,1),n,n))
+#     gma <- list(0)
+#     res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+#     Lambda[[1]] <- res_ISTA_bktr[[1]]
+#     
+#     TP <- sum((Lambda_0 != 0 & Lambda[[1]] != 0)[off_diag])
+#     FP <- sum((Lambda_0 == 0 & Lambda[[1]] != 0)[off_diag])
+#     TPR[k] <- TP / num_pos
+#     FPR[k] <- FP / num_neg
+#     
+#     TP_t <- sum((Lambda_0 != 0 & t(Lambda[[1]]) != 0)[off_diag])
+#     FP_t <- sum((Lambda_0 == 0 & t(Lambda[[1]]) != 0)[off_diag])
+#     TPR_t[k] <- TP_t / num_pos
+#     FPR_t[k] <- FP_t / num_neg
+#     
+#     k <- k + 1
+#     
+#     if(nnzero(Lambda[[1]]) == n) break
+#     
+#     for (i in 1:10000) {
+#       Lambda[[i+1]] <- Lambda[[i]]
+#       t_gma <- gma[[i]]
+#       while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+#         t_gma <- t_gma + 0.01
+#         res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+#         Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+#       }
+#       gma[[i+1]] <- t_gma
+#       
+#       TP <- sum((Lambda_0 != 0 & Lambda[[i+1]] != 0)[off_diag])
+#       FP <- sum((Lambda_0 == 0 & Lambda[[i+1]] != 0)[off_diag])
+#       TPR[k] <- TP / num_pos
+#       FPR[k] <- FP / num_neg
+#       
+#       TP_t <- sum((Lambda_0 != 0 & t(Lambda[[i+1]]) != 0)[off_diag])
+#       FP_t <- sum((Lambda_0 == 0 & t(Lambda[[i+1]]) != 0)[off_diag])
+#       TPR_t[k] <- TP_t / num_pos
+#       FPR_t[k] <- FP_t / num_neg
+#       
+#       k <- k+1
+#       
+#       if(nnzero(Lambda[[i+1]]) == n) break
+#     }
+#   }
+#   
+#   return(list(TPR,FPR,TPR_t,FPR_t))
+# }
+
+get_roc_ISTA <- function (n,Sigma, omega, Lambda_0, Lambda_init, gma_cand, eta, eta_inc) {
   TPR <- numeric()
   FPR <- numeric()
   TPR_t <- numeric()
@@ -268,50 +328,50 @@ get_roc_ISTA <- function (n,Sigma, omega, Lambda_0, num_exp, eta, eta_inc) {
   num_pos <- sum((Lambda_0 != 0)[off_diag])
   num_neg <- sum((Lambda_0 == 0)[off_diag])
   
-  for (j in 1:num_exp) {
-    Lambda <- list(matrix(runif(n**2,-1,1),n,n))
-    gma <- list(0)
-    res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
-    Lambda[[1]] <- res_ISTA_bktr[[1]]
+  Lambda <- list(Lambda_init)
+  p <- 1
+  gma <- c(gma_cand[1])
+  res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
+  Lambda[[1]] <- res_ISTA_bktr[[1]]
+  
+  TP <- sum((Lambda_0 != 0 & Lambda[[1]] != 0)[off_diag])
+  FP <- sum((Lambda_0 == 0 & Lambda[[1]] != 0)[off_diag])
+  TPR[k] <- TP / num_pos
+  FPR[k] <- FP / num_neg
+  
+  TP_t <- sum((Lambda_0 != 0 & t(Lambda[[1]]) != 0)[off_diag])
+  FP_t <- sum((Lambda_0 == 0 & t(Lambda[[1]]) != 0)[off_diag])
+  TPR_t[k] <- TP_t / num_pos
+  FPR_t[k] <- FP_t / num_neg
+  
+  k <- k + 1
+  
+  # if(nnzero(Lambda[[1]]) == n ** 2) break
+  if(nnzero(Lambda[[1]]) == n) break
+  
+  for (i in 1:100) {
+    Lambda[[i+1]] <- Lambda[[i]]
+    while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+      p <- p + 1
+      t_gma <- gma_cand[p]
+      res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
+      Lambda[[i+1]] <- res_ISTA_bktr[[1]]
+    }
+    gma[[i+1]] <- t_gma
     
-    TP <- sum((Lambda_0 != 0 & Lambda[[1]] != 0)[off_diag])
-    FP <- sum((Lambda_0 == 0 & Lambda[[1]] != 0)[off_diag])
+    TP <- sum((Lambda_0 != 0 & Lambda[[i+1]] != 0)[off_diag])
+    FP <- sum((Lambda_0 == 0 & Lambda[[i+1]] != 0)[off_diag])
     TPR[k] <- TP / num_pos
     FPR[k] <- FP / num_neg
     
-    TP_t <- sum((Lambda_0 != 0 & t(Lambda[[1]]) != 0)[off_diag])
-    FP_t <- sum((Lambda_0 == 0 & t(Lambda[[1]]) != 0)[off_diag])
+    TP_t <- sum((Lambda_0 != 0 & t(Lambda[[i+1]]) != 0)[off_diag])
+    FP_t <- sum((Lambda_0 == 0 & t(Lambda[[i+1]]) != 0)[off_diag])
     TPR_t[k] <- TP_t / num_pos
     FPR_t[k] <- FP_t / num_neg
     
-    k <- k + 1
+    k <- k+1
     
-    if(nnzero(Lambda[[1]]) == n) break
-    
-    for (i in 1:10000) {
-      Lambda[[i+1]] <- Lambda[[i]]
-      t_gma <- gma[[i]]
-      while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
-        t_gma <- t_gma + 0.01
-        res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,t_gma,eta,eta_inc)
-        Lambda[[i+1]] <- res_ISTA_bktr[[1]]
-      }
-      gma[[i+1]] <- t_gma
-      
-      TP <- sum((Lambda_0 != 0 & Lambda[[i+1]] != 0)[off_diag])
-      FP <- sum((Lambda_0 == 0 & Lambda[[i+1]] != 0)[off_diag])
-      TPR[k] <- TP / num_pos
-      FPR[k] <- FP / num_neg
-      
-      TP_t <- sum((Lambda_0 != 0 & t(Lambda[[i+1]]) != 0)[off_diag])
-      FP_t <- sum((Lambda_0 == 0 & t(Lambda[[i+1]]) != 0)[off_diag])
-      TPR_t[k] <- TP_t / num_pos
-      FPR_t[k] <- FP_t / num_neg
-      
-      k <- k+1
-      
-      if(nnzero(Lambda[[i+1]]) == n) break
-    }
+    if(nnzero(Lambda[[i+1]]) == n) break
   }
   
   return(list(TPR,FPR,TPR_t,FPR_t))
