@@ -16,7 +16,6 @@ library(tidyr)
 library(reshape2)
 ```
 
-# Algorithm: Splitting
 
 ## Algo1
 
@@ -409,14 +408,70 @@ beta <- 0.5
 res_ADMM <- ft_ADMM(Sigma,omega, beta)
 ```
 
+Linearized ADMM
 ```{r}
 
+Lambda_1 <- list(Lambda_init[[5]])
+Lambda_2 <- list(Lambda_init[[5]])
+
+# Define the candidate values for the penalty parameter
+gma_cand <- log(seq(1, 100, 0.1), 2)
+gma <- c(gma_cand[1])
+
+# --- First run to get an initial solution ---
+# Call ln_ADMM instead of ft_ISTA_bktr
+res_ln_ADMM <- ln_ADMM(Lambda_1[[1]], Lambda_2[[1]], n, Sigma, omega, gma[1])
+
+# Store the results from the ADMM output list
+Lambda_1[[1]] <- res_ln_ADMM[[1]]
+Lambda_2[[1]] <- res_ln_ADMM[[2]]
+obj <- list(res_ln_ADMM[[4]]) # Objective value is the 4th element
+
+k <- 1
+
+# --- Main loop to find changes in sparsity ---
+for (i in 1:100) {
+  # Initialize the next step with the result of the previous step
+  Lambda_1[[i+1]] <- Lambda_1[[i]]
+  Lambda_2[[i+1]] <- Lambda_2[[i]]
+  
+  # This while loop keeps increasing 'gma' until the sparsity pattern of Lambda_1 changes
+  while (all((Lambda_1[[i]] != 0) == (Lambda_1[[i+1]] != 0))) {
+    k <- k + 1
+    if (k > length(gma_cand)) break # Prevent running out of candidates
+    
+    t_gma <- gma_cand[k]
+    
+    # Call ln_ADMM using the previous solution as a "warm start"
+    res_ln_ADMM <- ln_ADMM(Lambda_1[[i]], Lambda_2[[i]], n, Sigma, omega, t_gma)
+    
+    # Update the next-step matrices with the new result
+    Lambda_1[[i+1]] <- res_ln_ADMM[[1]]
+    Lambda_2[[i+1]] <- res_ln_ADMM[[2]]
+  }
+  
+  # Store the objective and the 'gma' value that caused the pattern to change
+  obj[[i+1]] <- res_ln_ADMM[[4]]
+  gma[i+1] <- t_gma
+  
+  # Break if we've used all candidates or if the matrix becomes dense
+  # Note: The sparsity check is on Lambda_1, which is subject to the L1 penalty.
+  if (k >= length(gma_cand) || nnzero(Lambda_1[[i+1]]) == n) break
+}
+
+Lambda_1
+
+gma
+```
+
+ISTA
+```{r}
 Lambda <- list(Lambda_init[[5]])
 
 eta <- 1
 eta_inc <- 1.05
-# gma_cand <- log(seq(100,1,-0.1),2)
-gma_cand <- log(seq(1,100,0.1),5)
+gma_cand <- log(seq(100,1,-0.1),2)
+# gma_cand <- log(seq(1,100,0.1),2)
 gma <- c(gma_cand[1])
 # gma_cand <- 10 ** (seq(-5,log10(2.5),0.003))
 # gma_cand <- seq(0,2,0.001)
@@ -438,13 +493,54 @@ for (i in 1:100) {
   }
   obj[[i+1]] <- res_ISTA_bktr[[2]]
   gma[i+1] <- t_gma
-  if(nnzero(Lambda[[i+1]]) == n || k == length(gma_cand)) break
+  if(nnzero(Lambda[[i+1]]) == (n+1) || k == length(gma_cand)) break
 }
 
 Lambda
 
 gma
 ```
+
+IHT
+```{r}
+Lambda <- list(Lambda_init[[10]])
+
+eta <- 1
+eta_inc <- 1.05
+# gma_cand <- c(0,log(seq(100,1,-0.1),10))
+# gma_cand <- c(0,10 ** (seq(-6,log10(5),0.01)))
+gma_cand <- log(seq(1,100,0.1),10)
+gma <- c(gma_cand[1])
+# gma_cand <- 10 ** (seq(-5,log10(2.5),0.003))
+# gma_cand <- seq(0,2,0.001)
+res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],n,Sigma,omega,gma[1],eta,eta_inc)
+# res_IHT_bktr <- ft_IHT_bktr(Lambda_init[[8]],n,Sigma,omega,gma[1],eta,eta_inc)
+Lambda[[1]] <- res_IHT_bktr[[1]]
+obj <- list(res_IHT_bktr[[2]])
+
+k <- 1
+
+for (i in 1:100) {
+  Lambda[[i+1]] <- Lambda[[i]]
+  while (all((Lambda[[i]]!=0) == (Lambda[[i+1]]!=0))) {
+    k <- k + 1
+    t_gma <- gma_cand[k]
+    res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],n,Sigma,omega,t_gma,eta,eta_inc)
+    # res_IHT_bktr <- ft_IHT_bktr(Lambda_init[[8]],n,Sigma,omega,t_gma,eta,eta_inc)
+    Lambda[[i+1]] <- res_IHT_bktr[[1]]
+    
+    if(k == length(gma_cand)) break
+  }
+  obj[[i+1]] <- res_IHT_bktr[[2]]
+  gma[i+1] <- t_gma
+  if(nnzero(Lambda[[i+1]]) == n + 1 || k == length(gma_cand)) break
+}
+
+Lambda
+
+gma
+```
+
 
 Proportion of the case where we find the true graph
 
@@ -495,6 +591,7 @@ print(res_pos_t / num_exp)
 ```{r}
 source("functions.R")
 load("result/Accuracy/res_3.RData")
+load("Initializations/inits_lmd_12.RData")
 n <- 3
 
 # Lambda_supp <- rbind(c(1,0,1),
@@ -513,7 +610,7 @@ Sigma <- matrix(vec_Sigma, nrow = n)
 # Lambda_init <- lapply(1:10, function(x) matrix(runif(n**2,-1,1), n,n))
 ```
 
-
+ISTA
 ```{r}
 df <- data.frame(lmd = numeric(), gma = numeric(), obj = numeric(), init_id = character())
 
@@ -522,18 +619,16 @@ for (k in 1:length(Lambda_init)) {
 
   eta <- 1
   eta_inc <- 1.5
-  # gma <- log(seq(100,1,-0.05),2)
-  gma <- log(seq(1,100,0.05),2)
+  gma <- log(seq(100,1,-0.1),2)
+  # gma <- log(seq(1,100,0.05),2)
   res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[1]],Sigma,omega,gma[[1]],eta,eta_inc)
   Lambda[[1]] <- res_ISTA_bktr[[1]]
   obj <- list(res_ISTA_bktr[[2]])
 
-  for (i in 1:length(gma)) {
+  for (i in 1:(length(gma)-1)) {
     res_ISTA_bktr <- ft_ISTA_bktr(Lambda[[i]],Sigma,omega,gma[i+1],eta,eta_inc)
     Lambda[[i+1]] <- res_ISTA_bktr[[1]]
     obj[[i+1]] <- res_ISTA_bktr[[2]]
-  
-    if(nnzero(Lambda[[i+1]]) == n) break
   }
   df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), init_id = rep(as.character(k),length(obj)))
 
@@ -541,6 +636,94 @@ for (k in 1:length(Lambda_init)) {
 }
 ```
 
+ADMM+ISTA
+```{r}
+df <- data.frame(lmd = numeric(), gma = numeric(), obj = numeric(), init_id = character())
+
+# for (k in 1:(length(Lambda_init)-1)) {
+for (k in 1:1) {
+  Lambda_1 <- list(Lambda_init[[k]])
+  Lambda_2 <- list(Lambda_init[[k+1]])
+
+  # gma <- log(seq(100,1,-0.05),2)
+  gma <- log(seq(100,1,-0.1),2)
+  res_ADMM_ISTA <- ADMM_ISTA_constant(Lambda_1[[1]],Lambda_2[[1]],Sigma,omega,gma[[1]])
+  Lambda_1[[1]] <- res_ADMM_ISTA[[1]]
+  Lambda_2[[1]] <- res_ADMM_ISTA[[2]]
+  obj <- list(res_ADMM_ISTA[[3]])
+
+  for (i in 1:length(gma)) {
+    res_ADMM_ISTA <- ADMM_ISTA_constant(Lambda_1[[i]],Lambda_2[[i]],Sigma,omega,gma[[i]])
+    Lambda_1[[i+1]] <- res_ADMM_ISTA[[1]]
+    Lambda_2[[i+1]] <- res_ADMM_ISTA[[2]]
+    obj[[i+1]] <- res_ADMM_ISTA[[3]]
+  
+    if(nnzero(Lambda_2[[i+1]]) == n) break
+  }
+  df_t <- data.frame(lmd = array(Lambda_2), gma = gma[1:length(obj)], obj = array(unlist(obj)), init_id = rep(as.character(k),length(obj)))
+
+  df <- rbind(df, df_t)
+}
+```
+
+Linearized ADMM
+```{r}
+df <- data.frame(lmd = numeric(), gma = numeric(), obj = numeric(), init_id = character())
+
+# for (k in 1:(length(Lambda_init)-1)) {
+for (k in 1:1) {
+  Lambda_1 <- list(Lambda_init[[k]])
+  Lambda_2 <- list(Lambda_init[[k]])
+
+  # gma <- log(seq(100,1,-0.05),2)
+  gma <- log(seq(100,1,-0.1),2)
+  res_ln_ADMM <- ln_ADMM(Lambda_1[[1]],Lambda_2[[1]],n,Sigma,omega,gma[1])
+  Lambda_1[[1]] <- res_ln_ADMM[[1]]
+  Lambda_2[[1]] <- res_ln_ADMM[[2]]
+  obj <- list(res_ln_ADMM[[4]])
+
+  for (i in 1:length(gma)) {
+    res_ln_ADMM <- ln_ADMM(Lambda_1[[i]],Lambda_2[[i]],n,Sigma,omega,gma[[i]])
+    Lambda_1[[i+1]] <- res_ln_ADMM[[1]]
+    Lambda_2[[i+1]] <- res_ln_ADMM[[2]]
+    obj[[i+1]] <- res_ln_ADMM[[4]]
+  
+    if(nnzero(Lambda_1[[i+1]]) == n ** 2) break
+  }
+  df_t <- data.frame(lmd = array(Lambda_1), gma = gma[1:length(obj)], obj = array(unlist(obj)), init_id = rep(as.character(k),length(obj)))
+
+  df <- rbind(df, df_t)
+}
+```
+IHT
+```{r}
+df <- data.frame(lmd = numeric(), gma = numeric(), obj = numeric(), init_id = character())
+
+# for (k in 1:length(Lambda_init)) {
+  Lambda <- list(Lambda_init[[10]])
+
+  eta <- 1
+  eta_inc <- 1.5
+  # gma <- log(seq(100,1,-0.1),10)
+  # gma <- log(seq(1,100,0.1),10)
+  gma <- 2 ** (seq(log(0.5,2),-5,-0.001))
+  res_IHT_bktr <- ft_IHT_bktr(Lambda[[1]],n,Sigma,omega,gma[[1]],eta,eta_inc)
+  Lambda[[1]] <- res_IHT_bktr[[1]]
+  obj <- list(res_IHT_bktr[[2]])
+
+  for (i in 1:(length(gma) - 1)) {
+    res_IHT_bktr <- ft_IHT_bktr(Lambda[[i]],n,Sigma,omega,gma[i+1],eta,eta_inc)
+    Lambda[[i+1]] <- res_IHT_bktr[[1]]
+    obj[[i+1]] <- res_IHT_bktr[[2]]
+  }
+  df_t <- data.frame(lmd = array(Lambda), gma = gma[1:length(obj)], obj = array(unlist(obj)), init_id = rep(as.character(10),length(obj)))
+
+  df <- rbind(df, df_t)
+# }
+```
+
+
+### Visialization
 ```{r}
 # Obj
 plt_1 <- ggplot(df,aes(x=gma,y=obj,color=init_id)) + 
@@ -565,6 +748,8 @@ plt_2
 # plt_3
 # plt_4
 ```
+
+
 ```{r}
 # Convert df$lmd (list of matrices) into a long format, but keep init_id
 df_long <- do.call(rbind, lapply(1:nrow(df), function(i) {
@@ -583,21 +768,114 @@ df_long <- do.call(rbind, lapply(1:nrow(df), function(i) {
 # df_7 <- subset(df_long, init_id == "7")
 
 # Filter out the diagonal entries
-df_7 <- subset(df_long, init_id == "9" & row != col) 
+df_7 <- subset(df_long, init_id == "10" & row != col) 
 
 # Plot entries of Lambda vs gamma for init_id = 7
 ggplot(df_7, aes(x = gma, y = value, 
                  color = interaction(row, col), 
                  group = interaction(row, col))) +
   geom_line(alpha = 0.7) +
+  # scale_x_log10() +
   labs(
-    title = "Lambda entries vs Gamma (Initialization 9)",
+    title = "Lambda entries vs Gamma (Initialization 10)",
+    # x = expression(log_10(gamma)),
     x = expression(gamma),
     y = "Lambda entry value",
     color = "Entry (row,col)"
   ) +
   theme_minimal()
 
+```
+
+ROC
+```{r}
+# --- 1. Define True Support ---
+Lambda_supp <- (Lambda_0 != 0)
+
+# --- 3. Process Data, Keeping init_id ---
+roc_data_by_init <- df %>%
+  rowwise() %>%
+  mutate(
+    lmd_tidy = list(
+      as.data.frame.table(lmd, responseName = "value") %>%
+        mutate(Var1 = as.integer(Var1), Var2 = as.integer(Var2))
+    )
+  ) %>%
+  ungroup() %>%
+  select(init_id, lmd_tidy) %>% # Keep init_id
+  unnest(lmd_tidy) %>%
+  filter(Var1 != Var2) %>%
+  group_by(init_id, Var1, Var2) %>% # Group by init_id as well
+  summarise(
+    score = max(abs(value), na.rm = TRUE),
+    .groups = 'drop'
+  )
+
+# Prepare true labels for joining
+true_labels <- as.data.frame.table(Lambda_supp, responseName = "is_true") %>%
+  mutate(
+    Var1 = as.integer(Var1),
+    Var2 = as.integer(Var2),
+    is_true = as.numeric(is_true)
+  )
+
+# Join scores with true labels
+roc_data_by_init <- roc_data_by_init %>%
+  left_join(true_labels, by = c("Var1", "Var2"))
+
+# --- 4. Manually Calculate ROC and AUC for Each Group ---
+
+# This function calculates ROC points for a single group of data
+calculate_roc <- function(data) {
+  # Order by score for this group
+  data <- data %>% arrange(desc(score))
+  
+  P <- sum(data$is_true)
+  N <- sum(data$is_true == 0)
+  
+  # Handle cases where there are no positives or no negatives to avoid division by zero
+  if (P == 0 || N == 0) return(data.frame(FPR = numeric(), TPR = numeric()))
+  
+  TPs <- cumsum(data$is_true)
+  FPs <- cumsum(data$is_true == 0)
+  
+  roc_pts <- data.frame(FPR = FPs / N, TPR = TPs / P)
+  
+  # Add the starting (0,0) point
+  return(rbind(data.frame(FPR = 0, TPR = 0), roc_pts))
+}
+
+# Apply the function to each init_id group
+roc_points_by_init <- roc_data_by_init %>%
+  group_by(init_id) %>%
+  group_modify(~ calculate_roc(.x)) %>%
+  ungroup()
+
+# Now, calculate the AUC for each init_id
+auc_summary <- roc_points_by_init %>%
+  group_by(init_id) %>%
+  summarise(
+    auc = sum( (TPR[-1] + TPR[-length(TPR)]) * diff(FPR) / 2 ),
+    .groups = 'drop'
+  )
+
+# Print the summary table of AUC values
+print("AUC for each initialization:")
+print(auc_summary)
+
+# --- 5. Plot All ROC Curves on One Graph ---
+ggplot(roc_points_by_init, aes(x = FPR, y = TPR, color = init_id, group = init_id)) +
+  geom_line(alpha = 0.8, size = 1) + # Draw one line for each init_id
+  geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1), color="grey", linetype="dashed", inherit.aes = FALSE) +
+  labs(
+    title = "ROC Curves per Initialization",
+    subtitle = "Assessing model stability across different starting points",
+    x = "False Positive Rate (1 - Specificity)",
+    y = "True Positive Rate (Sensitivity)",
+    color = "Init ID"
+  ) +
+  coord_equal() +
+  theme(legend.position = "bottom")
 ```
 
 
@@ -965,7 +1243,7 @@ plt_4
 
 ADMM with given support
 ```{r}
-ADMM_supp <- function(Sigma,omega,Lambda_t,beta=0.5) {
+ADMM_supp <- function(n,Sigma,omega,Lambda_t,beta=0.5) {
   for (j in 1:5) {
     # Initialization
     Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
@@ -985,11 +1263,11 @@ ADMM_supp <- function(Sigma,omega,Lambda_t,beta=0.5) {
   
   
       if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
-        return(TRUE) # Return the converged \Lambda and the objective function value
+        return(list(Lambda_1[[i+1]],obj[[i+1]],TRUE)) # Return the converged \Lambda and the objective function value
       }
     }
   }
-  return(FALSE)
+  return(list(Lambda_1[[i+1]],obj[[i+1]],FALSE))
 }
 ```
 
@@ -1201,11 +1479,221 @@ plt_2
 
 
 # Sol2: ADMM + ISTA
+Ver.1
+```{r}
+ADMM_iteration <- function(Lambda_1,Lambda_2,alpha,Sigma,omega,beta=0.5) {
+  n <- nrow(Sigma)
+  
+  Lambda_1_updt <- solve(2*(Sigma %*% Lambda_2 %*% t(Lambda_2) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2 %*% (Sigma - omega * diag(n))) - alpha + beta * Lambda_2)
+  Lambda_2_updt <- solve(2*Sigma %*% Lambda_1_updt %*% t(Lambda_1_updt) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1_updt %*% (Sigma - omega * diag(n)) + alpha + beta * Lambda_1_updt)
+  alpha_updt <- alpha + beta * (Lambda_1_updt - Lambda_2_updt)
+  
+  return(list(Lambda_1_updt,Lambda_2_updt,alpha_updt))
+}
+
+ADMM_ISTA_update <- function(Lambda_1,Lambda_2,alpha,Sigma,omega,gma,eta) {
+  n <- nrow(Sigma)
+  # ADMM iteration
+  res_ADMM <- ADMM_iteration(Lambda_1,Lambda_2,alpha,Sigma,omega)
+  Lambda_1_ADMM <- res_ADMM[[1]]
+  Lambda_2_ADMM <- res_ADMM[[2]]
+  alpha_updt <- res_ADMM[[3]]
+  
+  # Apply soft thresholding operator
+  mask_diag <- diag(n) == 1
+  Lambda_1_updt <- Lambda_1_ADMM
+  Lambda_2_updt <- Lambda_2_ADMM
+  
+  Lambda_1_updt[!mask_diag & Lambda_1_ADMM < -eta*gma] <- Lambda_1_ADMM[!mask_diag & Lambda_1_ADMM < -eta*gma] + eta*gma
+  Lambda_1_updt[!mask_diag & Lambda_1_ADMM >  eta*gma] <- Lambda_1_ADMM[!mask_diag & Lambda_1_ADMM >  eta*gma] - eta*gma
+  Lambda_1_updt[!mask_diag & abs(Lambda_1_ADMM) <= eta*gma] <- 0
+  
+  Lambda_2_updt[!mask_diag & Lambda_2_ADMM < -eta*gma] <- Lambda_2_ADMM[!mask_diag & Lambda_2_ADMM < -eta*gma] + eta*gma
+  Lambda_2_updt[!mask_diag & Lambda_2_ADMM >  eta*gma] <- Lambda_2_ADMM[!mask_diag & Lambda_2_ADMM >  eta*gma] - eta*gma
+  Lambda_2_updt[!mask_diag & abs(Lambda_2_ADMM) <= eta*gma] <- 0
+  
+  return (list(Lambda_1_updt,Lambda_2_updt,alpha_updt))
+}
+```
+
+Ver.2
+```{r}
+ADMM_ISTA_update <- function(Lambda_1,Lambda_2,alpha,Sigma,omega,gma,beta=0.5) {
+  n <- nrow(Sigma)
+  
+  Lambda_1_ADMM <- solve(2*(Sigma %*% Lambda_2 %*% t(Lambda_2) %*% Sigma) + beta * diag(n)) %*% (2*(Sigma %*% Lambda_2 %*% (Sigma - omega * diag(n))) - alpha + beta * Lambda_2)
+  # Lambda_2_ADMM <- solve(2*Sigma %*% Lambda_1_ADMM %*% t(Lambda_1_ADMM) %*% Sigma + beta * diag(n)) %*% (2 * Sigma %*% Lambda_1_ADMM %*% (Sigma - omega * diag(n)) + alpha + beta * Lambda_1_ADMM)
+  Lambda_2_ADMM <- Lambda_1_ADMM + alpha / beta
+  
+  mask_diag <- diag(n) == 1
+  Lambda_1_updt <- Lambda_1_ADMM
+  Lambda_2_updt <- Lambda_2_ADMM
+  
+  Lambda_2_updt[!mask_diag & Lambda_2_ADMM < -gma / beta] <- Lambda_2_ADMM[!mask_diag & Lambda_2_ADMM < -gma / beta] + gma / beta
+  Lambda_2_updt[!mask_diag & Lambda_2_ADMM >  gma / beta] <- Lambda_2_ADMM[!mask_diag & Lambda_2_ADMM >  gma / beta] - gma / beta
+  Lambda_2_updt[!mask_diag & abs(Lambda_2_ADMM) <= gma / beta] <- 0
+  
+  alpha_updt <- alpha + beta * (Lambda_1_updt - Lambda_2_updt)
+  
+  return(list(Lambda_1_updt,Lambda_2_updt,alpha_updt))
+}
+```
+
+
+```{r}
+ADMM_ISTA_constant <- function(Lambda_1_init,Lambda_2_init,Sigma,omega,gma,beta=0.5) {
+  n <- nrow(Sigma)
+  
+  Lambda_1 <- list(Lambda_1_init)
+  Lambda_2 <- list(Lambda_2_init)
+  alpha <- list(matrix(0,n,n))
+  obj <- list(frobenius.norm(Sigma - t(Lambda_1[[1]])%*%Sigma%*%Lambda_2[[1]] - omega * diag(n)) ** 2 + gma * (sum(abs(c(Lambda_1[[1]]) - c(diag(diag(Lambda_1[[1]]))))) + sum(abs(c(Lambda_2[[1]]) - c(diag(diag(Lambda_2[[1]])))))))
+  obj_gap <- list(obj[[1]])
+  lmd_gap <- list(frobenius.norm(Lambda_1[[1]] - Lambda_2[[1]]))
+  
+  for (i in 1:1000) {
+    ADMM_ISTA_updt <- ADMM_ISTA_update(Lambda_1[[i]],Lambda_2[[i]],alpha[[i]],Sigma,omega,gma)
+    Lambda_1[[i+1]] <- ADMM_ISTA_updt[[1]]
+    Lambda_2[[i+1]] <- ADMM_ISTA_updt[[2]]
+    alpha[[i+1]] <- ADMM_ISTA_updt[[3]]
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]])%*%Sigma%*%Lambda_2[[i+1]] - omega * diag(n)) ** 2 + gma * (sum(abs(c(Lambda_1[[i+1]]) - c(diag(diag(Lambda_1[[i+1]]))))) + sum(abs(c(Lambda_2[[i+1]]) - c(diag(diag(Lambda_2[[i+1]]))))))
+    obj_gap[[i+1]] <- abs(obj[[i+1]] - obj[[i]])
+    lmd_gap[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    
+    
+    if(obj_gap[[i+1]] < 1e-4 & lmd_gap[[i+1]] < 1e-6) {
+      return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],obj[[i+1]],TRUE))
+    }
+  }
+  # print("ISTA did not converge within 1000 iterations. Objective gap:")
+  # print(obj_gap[[i+1]])
+  # print("Lambda gap:")
+  # print(lmd_gap[[i+1]])
+  return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],obj[[i+1]],FALSE))
+}
+```
 
 
 
 
+```{r}
+# # Initialization
+#     Lambda_1 <- matrix(runif(n**2,-1,1),ncol=n)
+#     Lambda_2 <- matrix(runif(n**2,-1,1),ncol=n)
+#     alpha <- matrix(0,n,n)
+```
 
+# Sol3: Linearized ADMM
+
+With square
+```{r}
+# ln_ADMM <- function(Lambda_1_init,Lambda_2_init,n,Sigma,omega,gma,L_1=83,L_2=5,beta=75){
+ln_ADMM <- function(n,Sigma,omega,gma,L_1=83,L_2=5,beta=75){
+  # Initialization
+  Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  # Lambda_2 <- list(Lambda_1[[1]])
+  # print("ln_ADMM")
+  # Lambda_1 <- list(Lambda_1_init)
+  # Lambda_2 <- list(Lambda_2_init)
+  alpha <- list(matrix(0,n,n))
+  dis_1_2 <- list(1)
+  obj <- list(1)
+  obj_real <- list(1)
+  
+  for (i in 1:1000) {
+    # Update Lambda_1
+    # Gradient step
+    Lambda_1_grad <- Lambda_1[[i]] - (-2 *(Sigma %*% Lambda_2[[i]]) %*%(Sigma - t(Lambda_2[[i]]) %*% Sigma %*% Lambda_1[[i]] - omega * diag(n)) + alpha[[i]] + beta * (Lambda_1[[i]] - Lambda_2[[i]])) / L_1
+    
+    # Proximal step
+    mask_diag <- diag(n) == 1
+    Lambda_1[[i+1]] <- Lambda_1_grad
+  
+    Lambda_1[[i+1]][!mask_diag & Lambda_1_grad < -gma / L_1] <- Lambda_1_grad[!mask_diag & Lambda_1_grad < -gma / L_1] + gma / L_1
+    Lambda_1[[i+1]][!mask_diag & Lambda_1_grad >  gma / L_1] <- Lambda_1_grad[!mask_diag & Lambda_1_grad >  gma / L_1] - gma / L_1
+    Lambda_1[[i+1]][!mask_diag & abs(Lambda_1_grad) <= gma / L_1] <- 0
+    
+    # Update Lambda_2
+    Lambda_2[[i+1]] <- (L_2 * Lambda_2[[i]] + alpha[[i]] + beta * Lambda_1[[i+1]] + 2 * (Sigma %*% Lambda_1[[i+1]]) %*% (Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i]] - omega * diag(n))) / (L_2 + beta)
+    
+    # Update alpha
+    alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    
+    # Update dis_1_2 and obj
+    dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) **2 + gma * (sum(abs(c(Lambda_1[[i+1]]) - c(diag(diag(Lambda_1[[i+1]]))))))
+    obj_real[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) **2
+    
+    # Convergence criteria
+    dis_1 <- frobenius.norm(Lambda_1[[i+1]] - Lambda_1[[i]])
+    dis_2 <- frobenius.norm(Lambda_2[[i+1]] - Lambda_2[[i]])
+    dis_alpha <- frobenius.norm(alpha[[i+1]] - alpha[[i]])
+    
+    if(max(dis_1,dis_2,dis_alpha) < 1e-6) {
+      print("ADMM converges!")
+      return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],dis_1_2[[i+1]],obj[[i+1]],obj_real[[i+1]]))
+    }
+  }
+  print("ADMM did not converge after 10000 iterations.")
+  return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],dis_1_2[[i+1]],obj[[i+1]],obj_real[[i+1]]))
+}
+```
+
+Without square
+```{r}
+# ln_ADMM <- function(n,Sigma,omega,gma,L_1=83,L_2=5,beta=75){
+ln_ADMM <- function(Lambda_1_init,Lambda_2_init,n,Sigma,omega,gma,L_1=83,L_2=5,beta=75){
+  # Initialization
+  # Lambda_1 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  # Lambda_2 <- list(matrix(runif(n**2,-1,1),ncol=n))
+  # Lambda_2 <- list(Lambda_1[[1]])
+  # print("ln_ADMM")
+  Lambda_1 <- list(Lambda_1_init)
+  Lambda_2 <- list(Lambda_2_init)
+  alpha <- list(matrix(0,n,n))
+  dis_1_2 <- list(1)
+  obj <- list(1)
+  obj_real <- list(1)
+  
+  for (i in 1:1000) {
+    # Update Lambda_1
+    # Gradient step
+    Lambda_1_grad <- Lambda_1[[i]] - (-(Sigma %*% Lambda_2[[i]]) %*%(Sigma - t(Lambda_2[[i]]) %*% Sigma %*% Lambda_1[[i]] - omega * diag(n)) / frobenius.norm(Sigma - t(Lambda_1[[i]]) %*% Sigma %*% Lambda_2[[i]] - omega * diag(n)) + alpha[[i]] + beta * (Lambda_1[[i]] - Lambda_2[[i]])) / L_1
+    
+    # Proximal step
+    mask_diag <- diag(n) == 1
+    Lambda_1[[i+1]] <- Lambda_1_grad
+  
+    Lambda_1[[i+1]][!mask_diag & Lambda_1_grad < -gma / L_1] <- Lambda_1_grad[!mask_diag & Lambda_1_grad < -gma / L_1] + gma / L_1
+    Lambda_1[[i+1]][!mask_diag & Lambda_1_grad >  gma / L_1] <- Lambda_1_grad[!mask_diag & Lambda_1_grad >  gma / L_1] - gma / L_1
+    Lambda_1[[i+1]][!mask_diag & abs(Lambda_1_grad) <= gma / L_1] <- 0
+    
+    # Update Lambda_2
+    Lambda_2[[i+1]] <- (L_2 * Lambda_2[[i]] + alpha[[i]] + beta * Lambda_1[[i+1]] + (Sigma %*% Lambda_1[[i+1]]) %*% (Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i]] - omega * diag(n)) / frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i]] - omega * diag(n))) / (L_2 + beta)
+    
+    # Update alpha
+    alpha[[i+1]] <- alpha[[i]] + beta * (Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    
+    # Update dis_1_2 and obj
+    dis_1_2[[i+1]] <- frobenius.norm(Lambda_1[[i+1]] - Lambda_2[[i+1]])
+    obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) + gma * (sum(abs(c(Lambda_1[[i+1]]) - c(diag(diag(Lambda_1[[i+1]]))))))
+    obj_real[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n))
+    
+    # Convergence criteria
+    dis_1 <- frobenius.norm(Lambda_1[[i+1]] - Lambda_1[[i]])
+    dis_2 <- frobenius.norm(Lambda_2[[i+1]] - Lambda_2[[i]])
+    dis_alpha <- frobenius.norm(alpha[[i+1]] - alpha[[i]])
+    
+    if(max(dis_1,dis_2,dis_alpha) < 1e-6) {
+      # print("ADMM converges!")
+      return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],dis_1_2[[i+1]],obj[[i+1]],obj_real[[i+1]]))
+    }
+  }
+  # print("ADMM did not converge after 10000 iterations.")
+  return(list(Lambda_1[[i+1]],Lambda_2[[i+1]],dis_1_2[[i+1]],obj[[i+1]],obj_real[[i+1]]))
+}
+```
 
 
 
@@ -1312,7 +1800,8 @@ ADMM_supp <- function(Sigma,omega,Lambda_t,beta=0.5) {
       obj[[i+1]] <- frobenius.norm(Sigma - t(Lambda_1[[i+1]]) %*% Sigma %*% Lambda_2[[i+1]] - omega * diag(n)) ** 2
   
   
-      if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+      # if(dis_1_2[[i+1]] < 1e-6 & obj[[i+1]] < 1e-6) {
+      if(dis_1_2[[i+1]] < 1e-6) {
         return(list(TRUE,Lambda_1[[1]],Lambda_1[[i+1]],obj[[i+1]])) # Return the converged \Lambda and the objective function value
       }
     }

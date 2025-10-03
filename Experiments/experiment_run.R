@@ -1,4 +1,4 @@
-# experiment_accuracy.R
+# experiment_run.R
 library('fBasics')
 library('Matrix')
 library("matrixcalc")
